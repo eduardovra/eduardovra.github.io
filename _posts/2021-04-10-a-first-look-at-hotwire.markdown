@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "A first look at Hotwire"
-date:   2021-04-02 16:05:01 -0300
+date:   2021-04-10 16:05:01 -0300
 description: My first impressions of this new way of building web apps
 img: hotwire.jpg
 tags: [Hotwire, Javascript]
