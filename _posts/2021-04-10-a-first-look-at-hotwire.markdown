@@ -83,6 +83,8 @@ The Hotwire project is an attempt to bring simplicity back to the web developmen
 
 If you want to build a web application writing the least Javascript possible, but still want to deliver a good user experience, Hotwire's Turbo seems to be a good way to go.
 
+This was just a first look at Hotwire Turbo and I'll be covering more ground over the next posts. Following on, I'll be checking out Stimulus and how Turbo and Stimulus work together.
+
 [twitter-dhh]: https://twitter.com/dhh/status/1341420143239450624?lang=en
 [basecamp]: https://basecamp.com
 [hey]: https://hey.com
