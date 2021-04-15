@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Hotwire and Stimulus for Javascript sprinkles"
-date:   2021-04-15 00:00:00 -0300
+#date:   2021-04-15 00:00:00 -0300
 description: An overview on how to add behavior using Stimulus
 img: stimulus2.png
 tags: [Hotwire, Javascript]
