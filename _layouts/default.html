@@ -7,6 +7,8 @@
     {{ content }}
   </div>
   
-  {% include analytics.html %}
+  {% if site.analytics and jekyll.environment == 'production' %}
+    {% include analytics.html %}
+  {% endif %}
 </body>
 </html>
