@@ -3,7 +3,7 @@ layout: post
 title:  Hotwire and Stimulus for Javascript sprinkles
 #date:   2021-04-15 00:00:00 -0300
 description: An overview on how to add behavior using Stimulus
-img: stimulus2.png
+img: stimulus.png
 tags: [Hotwire, Javascript]
 ---
 
@@ -15,7 +15,7 @@ Stimulus is a Javascript framework, intended to be used as a tool to add the lit
 
 The building blocks of a Stimulus application are the _controllers_. Controllers are Javascript objects that are connected to HTML elements using tag annotations. Stimulus constantly monitors new elements on the page looking for a specific attribute to match for a corresponding controller. When it finds one, an instance of the controller is created and then connected to the element on the DOM.
 
-As you'll see, Stimulus follows the _Convention over Configuration_ practice. This alone can help reducing the amount of boilerplate code one needs to write. Most conventions will be self-explanatory, once we go through the examples.
+As you'll see, Stimulus follows the _Convention over Configuration_ practice. This alone can help reducing the amount of boilerplate code one needs to write. Most naming conventions will be self-explanatory, once we go through the examples.
 
 Controllers allow us to:
 
