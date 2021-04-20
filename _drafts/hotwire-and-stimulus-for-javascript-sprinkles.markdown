@@ -27,8 +27,8 @@ Other highlights:
 
 * Controllers are small, re-usable javascript components
 * They are not supposed to be used for templates rendering: it's preferable to keep this task to the backend. So every time a new chunk of HTML is needed, it should be fetched from the server
+* Whenever possible, the state is kept within the DOM, and not on Javascript objects
 * The binding between controllers and the HTML elements are set using declarative tags
-* The state is kept within the DOM, and not on Javascript objects
 * Lifecycle hooks are provided to allow initialization of each controller instance
 
 ### Show me the code
@@ -123,7 +123,11 @@ A lot is going on here, so let’s break it up.
 
 #### Targets property
 
-We can see a different usage of the <code>targets</code> property. Because there's more than one element with the <code>"slice"</code> value, an additional property <code>slideTargets</code> (plural) was created by Stimulus. Using this variable we can loop through all corresponding elements.
+We can see a different usage of the <code>targets</code> property. Because there's more than one element with the <code>"slice"</code> value, an additional property <code>slideTargets</code> (plural) was used to iterate through them. Stimulus creates a total of 3 properties for each target:
+
+* slideTarget: contains the first matched element
+* slideTargets: contains all matching elements
+* hasslideTarget: a boolean indicating if there's a matching element
 
 #### Values property
 
@@ -139,7 +143,7 @@ Another difference in this example is the usage of the special method called <co
 
 As mentioned in the project's [guidebook][guidebook], Stimulus is a framework with very modest ambitions. It provides a set of tools and practices to help us build the frontend of our applications, enforcing the separation of content and behavior. This tool couples very well with Turbo to assist developers in crafting dynamic web applications, keeping the focus on simplicity.
 
-I highly recommend reading the [official][guidebook] documentation, as it covers each aspect of the framework more deeply, and explains in more detail the reasoning behind the design decisions.
+This article covered just a first glimpse at Stimulus's usage, but I highly recommend reading the [official][guidebook] documentation, as it covers each aspect of the framework more deeply, and explains in more detail the reasoning behind the design decisions.
 
 In the next posts, I'll be creating a full-featured simple app to demonstrate how Turbo and Stimulus can be used together to build a real application.
 
