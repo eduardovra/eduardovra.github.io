@@ -1,9 +1,9 @@
 ---
 layout: post
-title:  Hotwire and Stimulus for Javascript sprinkles
-date:   2021-04-20 00:00:00 -0300
-description: An overview on how to add behavior using Stimulus
-img: stimulus.png
+title: Model
+#date:   2021-04-20 00:00:00 -0300
+description: Example description
+#img: stimulus.png
 tags: [Hotwire, Javascript]
 ---
 
