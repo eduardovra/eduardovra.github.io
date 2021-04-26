@@ -26,10 +26,16 @@ Each example is located within its sub folder and is a complete separate Flask a
 
 For the first example, I wanted to explore a simple case where Javascript is usually used for: dynamically pulling data from the server and appending to the DOM. This application is composed of a button to trigger the process of loading a new image and adding it to the UI. The number of images is displayed on the top of the screen and it's also kept within the server between page reloads.
 
-![A gif showing the application working](/assets/img/hotwire-image-loader.gif)
+![A gif showing the image loader application working](/assets/img/hotwire-image-loader.gif)
 
-```html
-...
+The page is composed of a main HTML template and two partials as you'll see bellow. Styles were omitted for clarity.
+
+{% raw %}
+``` html
+<!-- index.html -->
+<h2>
+  Images loaded: <turbo-frame id="counter">{{ counter }}</turbo-frame>
+</h2>
 
 <turbo-frame id="images">
   {% for seq in range(0, counter) %}
@@ -39,25 +45,67 @@ For the first example, I wanted to explore a simple case where Javascript is usu
 
 <turbo-frame id="button">
   <form action="/add-image" method="post">
-    <input type="submit" value="Load more" style="margin: 4px 2px;">
+    <input type="submit" value="Load more">
   </form>
 </turbo-frame>
-```
 
-{% highlight html %}
 <!-- _image_loader.html -->
 <turbo-frame id="{{ seq }}" src="/get-image/{{ seq }}">
-  <br />
   <img src="{{ url_for('static', filename='spinner.gif') }}" />
 </turbo-frame>
-{% endhighlight %}
 
+<!-- _image.html -->
+<turbo-frame id="{{ seq }}">
+  <img src="https://picsum.photos/id/{{ seq }}/536/354" />
+</turbo-frame>
+```
+{% endraw %}
 
+The *index.html* file has 3 Turbo Frames:
+
+* One containing the loaded images count. The use of the frame here will allow us to update this value dynamically from the server afterwards, using Turbo Streams.
+* A placeholder frame for the images that are going to be referenced from the server when adding new images to the UI.
+** The images frame includes the `_image_loader` partial. This segment demonstrates how we can place temporary content in a lazily loaded frame. A spinning gif in this case.
+* And a frame for the form, which enables Turbo Drive on submission.
+
+Now the python code for the server part.
+
+``` python
+@app.route("/", methods=["GET",])
+def index():
+    return render_template("index.html", counter=sequence)
+
+@app.route("/add-image", methods=["POST",])
+def add_image():
+    sequence += 1
+    html = render_template("_image_loader.html", seq=sequence)
+
+    return turbo.stream([
+        turbo.append(html, target="images"),
+        turbo.update(sequence, target="counter"),
+    ])
+
+@app.route("/get-image/<seq>", methods=["GET",])
+def get_image(seq):
+    return render_template("_image.html", seq=seq)
+```
+
+This code is pretty straightforward, the root path providing the initial page load, and two additional methods for adding the images. When the user clicks on the *Load more* button, an Ajax request is performed to the */add-image* method. This method responds with a stream of two actions: one for appending the new image loader partial, and another one to update the incremented value of images loaded.
+
+When the `_image-loader.html` partial is added to the DOM, Turbo immediately starts fetching the *src* of the frame, which will contain the actual image. Then it replaces its contents as soon as the response from the */get-image* method is received.
 
 ### Recipe creator with auto-completion
 
+In this example app, we'll be building an interactive recipe creator, where the user is allowed to select from a previously defined list of ingredients and add them to a list as they please. The ingredient selector is composed of an input field equipped with auto completion for a better user experience.
+
+There is a search input field which fetches ingredients from the server on the fly as you type. These ingredients are show bellow the field, and when the user clicks on one of them, the ingredient is added to the recipe on the left. If you click on some ingredient more that one, the amount is added up to the list on the recipe.
+The panel on the left shows the list of currently selected ingredients and have a small button allowing the user to remove each of them.
+
+![A gif showing the autocomplete application working](/assets/img/hotwire-autocomplete.gif)
+
 ### Wrapping up
 
+What am I gonna say ?
 
 [hotwire-first-look]: {% post_url 2021-04-10-a-first-look-at-hotwire %}
 [stimulus]: {% post_url 2021-04-20-hotwire-and-stimulus-for-javascript-sprinkles %}
