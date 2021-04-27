@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  Building two sample apps using Hotwire and Flask
-#date:   2021-04-20 00:00:00 -0300
+date:   2021-04-27 00:00:00 -0300
 description: A walk through on building two sample applications using Hotwire and Flask
 img: flask-logo.png
 tags: [Hotwire, Javascript, Python, Flask]
