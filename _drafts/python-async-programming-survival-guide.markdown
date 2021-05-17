@@ -3,7 +3,7 @@ layout: post
 title: Python async programming survival guide
 #date:   2021-04-20 00:00:00 -0300
 description: All you need to know to get started in async programming using modern Python 3
-img: python-asyncio.jpg
+img: python-event-loop.png
 tags: [python, asyncio, asgi]
 ---
 
@@ -52,7 +52,7 @@ async def main():
 asyncio.run(main())
 ```
 
-The code is pretty self-explanatory, but the two interesting things here are the use of the `async` keyword to define the coroutines, and the usage of the `await` keyword, which defines points in the code where the function can be paused/resumed. At the end of the script, we called `asyncio.run` to start the loop, handing over the main coroutine. All coroutines should be either awaited or passed to the event loop.
+The code is pretty self-explanatory, but the two interesting things here are the use of the `async` keyword to define the coroutines, and the usage of the `await` keyword, which defines points in the code where the function can be paused/resumed. At the end of the script, we called `asyncio.run` to start the loop, handing over the main coroutine. **All coroutines should be either awaited or passed to the event loop.**
 
 ## Pro tip
 
@@ -74,7 +74,7 @@ The problem is: the whole application stack must be rewritten to achieve this. W
 
 That's when the [ASGI][asgi] standard came about, a new protocol for integration of frameworks and the webservers supporting async. With the advent of this new interface, many new tools were created or improved to support the emerging standard, including frameworks like Django (using [Channels][django-channels]), as well as webservers like [Daphne][daphne] and [Uvicorn][uvicorn]. The ASGI interface also added the capability for the servers to implement Server Pushes over both WebSockets and [HTTP/2][http2], enabling the backend to send data to the browser without being requested. This enables the creating of new software architectures that were almost impossible before.
 
-## Creating tasks
+## Spawning tasks
 
 Until now, we have covered the following ways of running the coroutines:
 
@@ -82,7 +82,7 @@ Until now, we have covered the following ways of running the coroutines:
 * Awaiting on them
 * Running multiple coroutines concurrently by using `asyncio.gather`
 
-But, what if we wanted to spawn a task dynamically ? For instance, suppose we have a main loop handling events coming from a WebSocket connection, and in certain cases, we should spawn a long-running process in parallel to avoid blocking the loop.
+But, what if we wanted to spawn a task dynamically ? For instance, suppose we have a main loop handling events coming from the standard input, and in certain cases, we should spawn a long-running process in parallel to avoid blocking the loop.
 
 The following example depicts this scenario. A third-party library called [aiofiles][aiofiles] is used, because the native *read* system call would block the loop.
 
@@ -103,7 +103,7 @@ async def main():
 asyncio.run(main())
 ```
 
-As you can see, the `asyncio.create_task` function is provided to allow running on-demand tasks concurrently. It's the async equivalent of creating threads. The function returns a task handle as well, although it's being ignored in our case. The handle allows the application to *cancel* or to *join* the task waiting for its conclusion.
+As you can see, the `asyncio.create_task` function is provided to allow running on-demand tasks concurrently. It's the *async* equivalent of creating *threads*. The function returns a task handle as well, although it's being ignored in our case. The handle allows the application to *cancel* or to *join* the task waiting for its conclusion.
 
 ## Conclusion
 
