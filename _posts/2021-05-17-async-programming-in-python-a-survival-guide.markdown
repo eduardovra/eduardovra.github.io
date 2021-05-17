@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Python async programming survival guide
+title: "Async programming in Python: a survival guide"
 date: 2021-05-17 00:00:00 -0300
 description: All you need to know to get started in async programming using modern Python 3
 img: python-event-loop.png
