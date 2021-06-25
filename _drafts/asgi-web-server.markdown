@@ -9,21 +9,23 @@ tags: [Python, ASGI, HTTP, WebSockets]
 
 In this series of posts, I'll discuss why and how I built a fully functional Web Server, supporting both HTTP and WebSocket protocols. This server has been written totally in Python, with no external dependencies, and it's only about 200 lines of code. It's meant to be used for running ASGI applications, so it's compatible with frameworks like FastAPI and Quart.
 
-It's important to mention that a program that small was only possible due to the focus in simplicity it was given. If it were to be 100% compliant to the standards, and also worrying about performance and security, this would be another story.
+It's important to mention that a program that small was only possible due to the focus on simplicity it was given. If it were to be 100% compliant to the standards and also worrying about performance and security, this would be another story.
 
 Having taken this out of the way, if you're interested in knowing what's happening under the surface when writing your web apps, this article is for you.
 
+But first, let's take a walk on the philosophical side, and reflect on why this kind of project can be a good idea.
+
 ### What's the point of reinventing the wheel ?
 
-The first question you may be asking yourself is "Why should I do this in the first place? There's a ton of servers freely available to use already..". It's a fair question, and you're probably right avoiding to reinvent the wheel in your job. But my point here was to build it for the sake of learning. This project was never a commitment to create some production ready server, but instead, something that I did to carve knowledge and practice programming. My interest was to get a more in-depth understanding of web protocols, particularly WebSockets, and also to see how Async programming is being used in the real world.
+The first question you may be asking yourself is "Why should I do this in the first place? There's a ton of servers freely available to use already..". It's a fair question, and you're probably right avoiding to reinvent the wheel in your job. But my point here was to build it for the sake of learning. This project was never a commitment to create some production ready server, but instead, something that I did to carve knowledge and practice programming. My interest was to get a more in-depth understanding of web protocols, particularly WebSockets, and also to see how Async programming is being used in the real world. That said, I think not every code your write must be a piece of art, and you shouldn't be afraid of creating something humble that just serves the sole purpose of getting better.
 
-Most people underestimate the importance of practicing and reading good code to enhance your skills as a developer. But the reality is that all those open source projects are opportunities to discover very clever ways to use the language and solve real problems. What writer can possibly have created good books without reading a lot and getting references first?
+Most people underestimate the importance of practicing and reading good code to enhance your skills as a developer. But the reality is, being developers, we have access to thousands of open-source projects, and they are opportunities to discover very clever ways to use the language and solve real problems. What writer can possibly have created good books without reading a lot and getting references first?
 
-For me personally, I find it more productive to focus on more recent codebases, for example Starlette. If you look into it, you'll find good ideas, and its code is not so difficult to read, comparing with older projects like Flask, that carry the burden of maintaining compatibility and supporting multiple version of Python over time.
+For me personally, I find it more productive to focus on more recent codebases, for example, Starlette. If you dig into it, you'll find good ideas, and its code is not so difficult to read, comparing with older projects like Flask, that carry the burden of maintaining compatibility and supporting multiple version of Python over time.
 
 ### Defining goals
 
-For this project, I didn't wanted to set strict rules or milestones. Instead, the basic goal was to build something that worked, getting inspiration from others projects. The approach was basically to get a MVP of the server, then iterate again and again, adding more features each time. And I intended to keep this process as long as I'm still getting value out of it. I got the ball rolling by defining the base case that the server should be able to handle.
+For this project, I didn't want to set strict rules or milestones. Instead, the basic goal was to build something that worked, drawing inspiration from other projects. The approach was basically to get an MVP of the server, then iterate again, and again, adding more features each time. And I intended to keep this process as long as I was still getting value out of it. I got the ball rolling by defining the base case that the server should be able to handle.
 
 Consider the following application:
 
@@ -76,7 +78,7 @@ Now let's see about the other end of the server: how to communicate with the app
 
 The ASGI (Asynchronous Server Gateway Interface) standard establishes an interface for the server and application to communicate (by application I mean the Web Framework along with your code, considering the server sees it as only one thing).
 
-An ASGI server is required to create the event loop and launch the application each time a connection is established. In terms of format, it expects the app to be a callable that adheres to the following signature:
+An ASGI server is required to create the event loop and launch the application each time a connection is established. In terms of format, it expects the app to be a Callable that adheres to the following signature:
 
 ```python
 # Implemented using a function...
@@ -120,21 +122,23 @@ This is a *coroutine* provided by the server to enable the application to receiv
 
 It's a *courotine* as well, but it's intended to be called by the application when it needs to send some data. This *courotine* expects a dictionary to be provided as a parameter, containing details about the event being sent.
 
-### The Request-Response cycle
+### The Request-Response cycle in ASGI
 
 The HTTP protocol operates on a basic Request-Response cycle. This means, the connection is always initiated by the client, and the server can only send data back once it's requested.
 
 The basic outline of a connection cycle happens like this:
 
-* The client (browser, usually), connects to the server, which promptly accepts it
-* The client pushed the request data to the server
+* The client (a Browser, usually), connects to the server, which promptly accepts it
+* The client pushes the request data to the server
   * Once we get the headers in the server, we're ready to build the connection scope and invoke the application
-  * At this point, the application can call the receive function to get body of the request (if applicable)
-* App calls the send function to send the response headers. The server then formats the HTTP response headers and pushes it through the socket
-  * Optionally the app can call the send method once again to push the response body data (if applicable)
+  * At this point, the application can call the `receive()` function to get the body of the request (if any)
+* App calls `send()` function to send the response headers. The server then formats the HTTP response headers and pushes them through the socket
+  * Optionally the app can call the `send()` function once again to push the response body data (if any)
 * Finally, the application finishes its execution, and the control flow is returned to the server, which closes the connection
 
-For now, you may find the ASGI interface separation of receive and send methods seem to be overkill. But it was intentionally designed this way, and it will make much more sense when we're implementing the WebSocket protocol.
+For now, you may find the ASGI interface separation of receive and send methods seeming to be overkill. But it was intentionally designed this way, and it will make much more sense when we're implementing the WebSocket protocol.
+
+Talk is cheap, now show me code!
 
 ### Show me the code
 
@@ -142,7 +146,7 @@ Ok, so if you're a programmer and have reached this point without seeing any cod
 
 The idea here is to create a Python module that can replace the *uvicorn's* import statement while keeping the same behavior within the sample app.
 
-For now we're only intending to support the HTTP protocol, therefore the MVP could be something like this:
+For now, we're only intending to support the HTTP protocol, therefore the MVP could be something like this:
 
 ```python
 import asyncio
@@ -189,10 +193,10 @@ def run(app, host, port):
     asyncio.run(run_server(app, host, port))
 ```
 
-Some functions were omitted for brevity, but as you can see, the implementation is quiet small and easy to follow through. We leverage `asyncio.start_server` function to spawn a TCP server on the host and port selected by the user. 
+Some functions were omitted for brevity, but as you can see, the implementation is quite small and easy to follow through. We leverage the `asyncio.start_server()` function to spawn a TCP server on the host and port selected by the user. 
 
 Try running a sample app using this server to see it in action. Just drop the Python script in your project's folder and you're good to go (the server has no external dependencies). Any Python version >= 3.7 should work.
 
 ### Next step: WebSocket support
 
-In the next post, I'll go over the details of implementing the WebSocket protocol. Things will get more interesting, as we're going to have to deal with persistent connections, state and a lot more events types. That's when Async programming start to shine.
+In the next post, I'll go over the details of implementing the WebSocket protocol. Things will get more interesting, as we're going to have to deal with persistent connections, state, and a lot more event types. That's when Async programming starts to shine.
