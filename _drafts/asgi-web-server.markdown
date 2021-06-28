@@ -7,9 +7,9 @@ img: HTTP_logo.png
 tags: [python, asyncio, asgi, http, websocket]
 ---
 
-In this series of posts, I'll discuss why and how I built a fully functional Web Server, supporting both HTTP and WebSocket protocols. This server has been written totally in Python, with no external dependencies, and it's only about 200 lines of code. It's meant to be used for running ASGI applications, so it's compatible with frameworks like FastAPI and Quart.
+In this series of posts, I'll discuss why and how I built a fully functional Web Server, supporting both HTTP and WebSocket protocols. This server has been written totally in Python, with no external dependencies, and it's only about 200 lines of code. It's meant to be used for running [ASGI][asgi] applications, so it's compatible with frameworks like [FastAPI][fastapi] and [Quart][quart].
 
-TL;DR Here is the repository with the complete implementation.
+TL;DR [Here][repository] is the repository with the complete implementation.
 
 It's important to mention that a program that small was only possible due to the focus on simplicity it was given. If it were to be 100% compliant to the standards and also worrying about performance and security, this would be another story.
 
@@ -19,11 +19,13 @@ But first, let's take a walk on the philosophical side, and reflect on why this 
 
 ### What's the point of reinventing the wheel ?
 
-The first question you may be asking yourself is "Why should I do this in the first place? There's a ton of servers freely available to use already..". It's a fair question, and you're probably right avoiding to reinvent the wheel in your job. But my point here was to build it for the sake of learning. This project was never a commitment to create some production ready server, but instead, something that I did to carve knowledge, practice programming and have fun. My interest was to get a more in-depth understanding of web protocols, particularly WebSockets, and also to see how Async programming is being used in the real world. That said, I think not every code your write must be a piece of art, and you shouldn't be afraid of creating something humble that just serves the sole purpose of getting better.
-
 Most people underestimate the importance of practicing and reading good code to enhance your skills as a developer. But the reality is, being developers, we have access to thousands of open-source projects, and they are good opportunities to discover very clever ways of using programming languages to solve real problems. Nevertheless, randomly sweeping GitHub repositories to read code is not something that ever worked for me, hence, the idea of creating an application was something that helped me focus the research efforts.
 
-Personally, I find it more productive to focus on more recent codebases, for example, Starlette. If you dig into it, you'll find cool ideas. Its code is not so difficult to read, compared with older projects like Flask, which carry the burden of maintaining compatibility and supporting multiple versions of Python over time.
+Personally, I find it more productive to focus on more recent codebases, for example, [Starlette][starlette]. If you dig into it, you'll find cool ideas. Besides, its code is not so difficult to read, compared with older projects like [Flask][flask], which carry the burden of maintaining compatibility and supporting multiple versions of Python over time.
+
+My interest here was to get a more in-depth understanding of web protocols, particularly WebSockets, and also to see how Async programming is being used in the real world. This project was never a commitment to creating some production-ready server, but instead, something that I did to carve knowledge, practice programming and have fun. That said, I think not every code your write must be a piece of art, and you shouldn't be afraid of creating something humble that just serves the sole purpose of getting better. Sometimes your attention should be more focused on the process and less on the outcome.
+
+But for the record, I totally agree that it's usually not a good idea to reinvent the wheel in your job.
 
 ### Defining goals
 
@@ -45,13 +47,13 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-That was the simplest thing I could come up with in terms of functionality to support. Here, if we're to mock uvicorn's behavior, all we need to implement is a HTTP GET request/response cycle. Of course, the application will need an ASGI interface to communicate with the server as well. All thing considered, the job was basically creating a Python application that converts HTTP protocol messages to the ASGI interface, and vice-versa.
+That was the simplest thing I could come up with in terms of functionality to support. Here, if we're to mock [uvicorn's][uvicorn] behavior, all we need to implement is a HTTP GET request/response cycle. Of course, the server will need an ASGI interface to communicate with the application as well. All thing considered, the job was basically creating a Python application that converts HTTP protocol messages to the ASGI interface, and vice-versa.
 
 Let's begin by having a look on how HTTP works.
 
 ### The HTTP protocol
 
-Luckily, HTTP is a text based protocol, and it's fairly easy to parse. The basic format of the *Request* message is this:
+Luckily, [HTTP][] is a text based protocol, and it's fairly easy to parse. The basic format of the *Request* message is this:
 
 ```
 GET / HTTP/1.1\r\n
@@ -121,7 +123,7 @@ Notice that some fields are presented as *unicode strings* (like `"method"`), an
 
 This is a callback *coroutine* provided by the server to enable the application to receive events from the connection. The *coroutine* has no parameters and must return a dictionary with details about the event.
 
-For HTTP connections, there's only one event type that can be returned: `"http.request"`. It contains the payload of the request, and can be splited among several parts. That means, the app might have to call `receive()` multiple times until an event with the `"more_body"` flag is received as `False`.
+For HTTP connections, there's only one event type that can be returned: `"http.request"`. It contains the payload of the request, and can be split among several parts. That means, the app might have to call `receive()` multiple times until an event with the `"more_body"` flag is received as `False`.
 
 #### Send
 
@@ -219,7 +221,7 @@ Besides these details, the rest of the code is basically just about handling dic
 
 #### Parsing HTTP headers
 
-These are the routines responsible for parsing the HTTP protocol headers and create the `scope` dictionary that is going to be provided for the app.
+These are the routines responsible for parsing the HTTP protocol headers and create the `scope` dictionary that is going to be provided for the app. I used the built-in module `urllib` to parse the URL and separate the path from the query_string.
 
 ```python
 from urllib.parse import urlparse
@@ -279,8 +281,17 @@ def build_http_headers(scope, event):
 
 ### Wrapping-up and next steps
 
-In this post, I tried to cover the basic motivation why I think it's a good idea to tackle a personal project and how this helps guiding your open-source codebases reading. On the technical side, I introduced the HTTP protocol and the ASGI interface.
+In this post, I tried to cover the basic motivation why I think it's a good idea to undertake a personal project and how this helps to guide your open-source codebases exploration. On the technical side, I introduced the HTTP protocol and the ASGI interface. In the end, we got a single-threaded server capable of handling concurrent HTTP connections using asynchronous programming.
 
-If you liked the article, you can try running the sample app using this server to see it in action. Just drop the Python script in your project's folder and you're good to go (the server has no external dependencies). Any Python version >= 3.7 should work. Tinker with the code and try to improve it, it won't be hard :D
+If you liked the article, you should try running the sample app using this server to see it in action. Just drop the Python script in your project's folder and you're good to go (the server has no external dependencies). Any Python version >= 3.7 should work. Tinker with the code and try to improve it, it won't be hard :D
 
-In the next post, I'll go over the details of implementing the WebSocket protocol. Things will get more interesting, as we're going to have to deal with persistent connections, state, and a lot more event types. That's when Async programming starts to shine.
+In the next post, I'll go over the details of implementing the WebSocket protocol. Things will get more interesting, as we're going to deal with persistent connections, state, and a lot more event types. That's when Async programming starts to shine.
+
+[repository]: https://github.com/eduardovra/simple-asgi-webserver
+[asgi]: https://asgi.readthedocs.io/en/latest/index.html
+[fastapi]: https://github.com/tiangolo/fastapi
+[quart]: https://github.com/pgjones/quart
+[starlette]: https://github.com/encode/starlette
+[flask]: https://github.com/pallets/flask
+[uvicorn]: https://github.com/encode/uvicorn
+[http]: https://developer.mozilla.org/en-US/docs/Web/HTTP
