@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Writing a Python Web Server From Scratch - Part 2: WebSocket"
-#date: 2021-06-28 00:00:00 -0300
+date: 2021-09-05 00:00:00 -0300
 description: This is the second part of a series of posts detailing how I built a Python Web Server supporting HTTP and WebSocket protocols from scratch.
 img: websocket.png
 tags: [python, asyncio, asgi, http, websocket]
@@ -118,6 +118,8 @@ The frame contains several flags and control fields which I'll cover later. For 
 
 #### Scope format
 
+The scope dictionary for Websocket connections follows the same format as HTTP connections, being the `"type"` used to distinguish them. Notice also that Websocket connections use a different schema format: instead of *http* and *https*, it uses *ws* and *wss* for standard and encrypted connections respectively.
+
 ```python
 {
     "type": "websocket",
@@ -146,7 +148,9 @@ The frame contains several flags and control fields which I'll cover later. For 
 
 ### Extending the server to handle WebSockets
 
-The first thing the server needs to do, upon receiving a connection request, is to determine its type. This can be done by inspecting the headers section, as described earlier.
+With this brief introduction of how the protocol works, let's get into the server implementation. I'm going to show some snippets of the source code to demonstrate the general outline of the solution.
+
+The first thing the server needs to do, upon receiving a connection request, is to determine its type. It can be either a regular HTTP request or a Weboscket connection. This can be done by inspecting the headers section, as described earlier.
 
 ```python
 async def build_scope(reader):
@@ -166,7 +170,7 @@ async def build_scope(reader):
     return scope
 ```
 
-With the request **scope** ready to be delivered, the server can invoke the appropriate handler, being either `http_handler` or `websocket_handler`, and yield control to the application.
+With the request **scope** assembled, the server can invoke the appropriate handler, being either `http_handler` or `websocket_handler`, and yield control to the application.
 
 ```python
 async def handler(app, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
@@ -209,7 +213,7 @@ It all starts with the handshaking process. Let's check it out.
 
 The first time `receive()` is called by the application, a `"websocket.connect"` event is returned to denote the beginning of the handshake process. At this point, the app can either accept or deny the connection by sending a `"websocket.accept"` or `"websocket.close"` event, respectively.
 
-Once the upgrade is accepted and the handshake process is finished, both parties will start exchanging messages in the new binary frame format. These frames can carry control or data messages, and in the case of data messages, the format can be either text or binary.
+Once the upgrade is accepted and the handshake process is finished, both parties will start exchanging messages in the new binary frame format. These frames can carry control or data messages, and in the case of data messages, the payload's format can be either text or binary.
 
 #### Frame header parsing
 
@@ -231,7 +235,7 @@ async def read_websocket_frame(reader):
     # ...
 ```
 
-There is a catch with the payload length that you can check on the complete version of the code. Basically, if the length is greater than 125, which accounts for the 7-bit size limitation of the field, the server needs to read the real payload length from another region. In this case, the field can have either 2, or 8 bytes in size.
+There is a catch with the payload length that you can check on the complete version of the code. Basically, if the length is greater than 125, which accounts for the 7-bit size limitation of the field, the server needs to read the real payload length from another region. In that case, the field can have either 2, or 8 bytes in size.
 
 ```python
 async def read_websocket_frame(reader):
@@ -308,7 +312,7 @@ With this post, I've concluded the *Building My Own Web Server* series. The code
 
 Hopefully, the information and insights provided can be helpful to demystify what happens under the hood when your web app interacts with the browser. There is nothing magical about this process, and you don't need to be a wizard to be able to understand it.
 
-I recommend checking out the references below if you want to know more.
+I recommend checking out the references below if you want to know more the subject.
 
 ### References
 
