@@ -1,38 +1,80 @@
 ---
-layout: main
+layout: default
 ---
-<article class="article-page">
-  <div class="page-content">
-    {% if page.img %}
-    <div class="page-cover-image">
-      <figure>
-        <img class="page-image" src={{ "/assets/img/" | prepend: site.baseurl | append : page.img}} alt="{{page.title}}">
-        {% if page.fig-caption %}
-          <figcaption>{{page.fig-caption}}</figcaption>
-        {% endif %}
-      </figure>
-    </div> <!-- End Page Cover Image -->
-    {% else %}
+<article class="post">
+  <header class="post-header">
+    <div class="post-meta">
+      <time class="post-date" datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: '%b %d, %Y' }}</time>
+      {% assign words = content | strip_html | number_of_words %}
+      <span class="post-read-time">{{ words | plus: 250 | divided_by: 250 }} minute read</span>
+    </div>
+    <h1 class="post-title">{{ page.title }}</h1>
+    {% if page.tags.size > 0 %}
+    <div class="post-tags">
+      {% for tag in page.tags %}
+      <a class="tag" href="{{ '/tags/' | relative_url }}#{{ tag | cgi_escape }}">{{ tag }}</a>
+      {% endfor %}
+    </div>
     {% endif %}
-    <div class="wrap-content">
-      <header class="header-page">
-        <h1 class="page-title">{{page.title}}</h1>
-        <div class="page-date"><span>{{page.date | date: '%Y, %b %d'}}&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
-      </header>
-      {{content | markdownify}}
-      <div class="page-footer">
-        <div class="page-share">
-          <a href="https://twitter.com/intent/tweet?text={{ page.title }}&url={{ site.url }}{{ page.url }}" title="Share on Twitter" rel="nofollow" target="_blank">Twitter</a>
-          <a href="https://facebook.com/sharer.php?u={{ site.url }}{{ page.url }}" title="Share on Facebook" rel="nofollow" target="_blank">Facebook</a>
-          <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ site.url }}{{ page.url }}&title={{ page.title }}&summary={{ page.description }}&source={{ site.url }}" title="Share on LinkedIn" rel="nofollow" target="_blank">LinkedIn</a>
-        </div>
-        <div class="page-tag">
-          {% for tag in page.tags %}
-            <a href="{{site.baseurl}}/tags#{{tag}}" class="tag">&#35; {{ tag }}</a>
-          {% endfor %}
-        </div>
-      </div>
-      {% include disqus.html %}
-    </div> <!-- End Wrap Content -->
-  </div> <!-- End Page Content -->
-</article> <!-- End Article Page -->
+  </header>
+
+  <div class="post-content">
+    {{ content }}
+  </div>
+
+  <footer class="post-footer">
+    {% if page.previous %}
+    <a class="post-nav-link prev" href="{{ page.previous.url | relative_url }}">
+      <span class="post-nav-label">Older</span>
+      <span class="post-nav-title">&larr; {{ page.previous.title }}</span>
+    </a>
+    {% else %}
+    <span></span>
+    {% endif %}
+    {% if page.next %}
+    <a class="post-nav-link next" href="{{ page.next.url | relative_url }}">
+      <span class="post-nav-label">Newer</span>
+      <span class="post-nav-title">{{ page.next.title }} &rarr;</span>
+    </a>
+    {% endif %}
+  </footer>
+
+  {% include disqus.html %}
+</article>
+
+<aside class="post-toc" aria-label="Table of contents">
+  <div class="toc-title">On this page</div>
+  <nav class="toc-nav"></nav>
+</aside>
+
+<script>
+  (function () {
+    var nav = document.querySelector('.toc-nav');
+    var toc = document.querySelector('.post-toc');
+    var headings = Array.prototype.slice.call(
+      document.querySelectorAll('.post-content h2[id], .post-content h3[id]')
+    );
+    if (headings.length < 2) { toc.remove(); return; }
+    var hasH2 = document.querySelector('.post-content h2[id]') !== null;
+    var links = {};
+    headings.forEach(function (h) {
+      var a = document.createElement('a');
+      a.href = '#' + h.id;
+      a.textContent = h.textContent;
+      a.className = 'toc-link' + (hasH2 && h.tagName === 'H3' ? ' toc-sub' : '');
+      nav.appendChild(a);
+      links[h.id] = a;
+    });
+    var current = null;
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          if (current) { current.classList.remove('active'); }
+          current = links[entry.target.id];
+          current.classList.add('active');
+        }
+      });
+    }, { rootMargin: '0px 0px -70% 0px' });
+    headings.forEach(function (h) { observer.observe(h); });
+  })();
+</script>

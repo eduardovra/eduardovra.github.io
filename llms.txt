@@ -1,0 +1,19 @@
+---
+layout: null
+permalink: /llms.txt
+---
+# {{ site.title }}
+
+> {{ site.description | strip_newlines | strip }}
+
+Personal blog of {{ site.author }}, a software engineer. All posts are
+plain HTML pages; a full-content feed is available at {{ site.url }}/feed.xml.
+
+## Posts
+
+{% for post in site.posts %}- [{{ post.title }}]({{ site.url }}{{ post.url }}): {{ post.description | strip_newlines | strip }}
+{% endfor %}
+## Contact
+
+- GitHub: https://github.com/{{ site.social-github }}
+- LinkedIn: https://www.linkedin.com/in/{{ site.social-linkedin }}

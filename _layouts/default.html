@@ -3,9 +3,67 @@
 {% include head.html %}
 <body>
 
-  <div class="wrapper">
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-brand" href="{{ '/' | relative_url }}">eduardovra</a>
+      <nav class="site-nav">
+        <a href="{{ '/' | relative_url }}">Posts</a>
+        <a href="{{ '/tags/' | relative_url }}">Tags</a>
+        <a href="{{ '/about/' | relative_url }}">About</a>
+        <a class="accent" href="{{ '/feed.xml' | relative_url }}">RSS</a>
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode">
+          <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="M6.34 17.66l-1.41 1.41"></path><path d="M19.07 4.93l-1.41 1.41"></path></svg>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
     {{ content }}
-  </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div class="footer-links">
+        <a href="https://github.com/{{ site.social-github }}" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://www.linkedin.com/in/{{ site.social-linkedin }}" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://x.com/{{ site.twitter.username }}" target="_blank" rel="noopener">X</a>
+      </div>
+      <div class="footer-copy">&copy; {{ site.time | date: '%Y' }} {{ site.author }}</div>
+    </div>
+  </footer>
+
+  <script>
+    document.querySelector('.theme-toggle').addEventListener('click', function () {
+      var root = document.documentElement;
+      var current = root.getAttribute('data-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      var next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+
+    document.addEventListener('click', function (e) {
+      var img = e.target.closest('.post-content img');
+      if (img) {
+        var overlay = document.createElement('div');
+        overlay.className = 'lightbox';
+        var big = document.createElement('img');
+        big.src = img.src;
+        big.alt = img.alt;
+        overlay.appendChild(big);
+        overlay.addEventListener('click', function () { overlay.remove(); });
+        document.addEventListener('keydown', function onEsc(ev) {
+          if (ev.key === 'Escape') {
+            overlay.remove();
+            document.removeEventListener('keydown', onEsc);
+          }
+        });
+        document.body.appendChild(overlay);
+      }
+    });
+  </script>
 
 </body>
 </html>

@@ -1,21 +1,19 @@
-<div class="container">
-  <nav class="pagination" role="pagination">
-    <ul>
-      {% if paginator.previous_page %}
-        {% if paginator.previous_page == 1 %}
-        <p><a class="newer-posts" href="{{ site.baseurl }}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
-        {% else %}
-        <p><a class="newer-posts" href="{{ site.baseurl }}/page/{{ paginator.previous_page }}/"><i class="fa fa-long-arrow-left" aria-hidden="true"></i></a></p>
-        {% endif %}
-      {% endif %}
-
-      {% if paginator.total_pages > 1 %}
-      <p><span class="page-number">Page {{paginator.page}} of {{paginator.total_pages}}</span></p>
-      {% endif %}
-      
-      {% if paginator.next_page %}
-      <p><a class="older-posts" href="{{ site.baseurl }}/page/{{ paginator.next_page }}/"><i class="fa fa-long-arrow-right" aria-hidden="true"></i></a></p>
-      {% endif %}
-    </ul>
-  </nav>
-</div>
+{% if paginator.total_pages > 1 %}
+<nav class="pagination">
+  {% if paginator.previous_page %}
+    {% if paginator.previous_page == 1 %}
+    <a class="newer-posts" href="{{ '/' | relative_url }}">&larr; Newer posts</a>
+    {% else %}
+    <a class="newer-posts" href="{{ site.paginate_path | replace: ':num', paginator.previous_page | relative_url }}/">&larr; Newer posts</a>
+    {% endif %}
+  {% else %}
+  <span></span>
+  {% endif %}
+  <span class="page-number">Page {{ paginator.page }} of {{ paginator.total_pages }}</span>
+  {% if paginator.next_page %}
+  <a class="older-posts" href="{{ site.paginate_path | replace: ':num', paginator.next_page | relative_url }}/">Older posts &rarr;</a>
+  {% else %}
+  <span></span>
+  {% endif %}
+</nav>
+{% endif %}
