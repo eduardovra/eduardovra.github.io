@@ -6,14 +6,14 @@ This repository contains the sources for my personal blog:
 
 [https://eduardovra.github.io](https://eduardovra.github.io)
 
+The design is a custom Jekyll theme (layouts in `_layouts/`, styles in
+`assets/css/style.css`) with light/dark mode support. It originally
+started from the [Flexible-Jekyll](https://github.com/artemsheludko/flexible-jekyll)
+theme, which has since been fully replaced.
+
 ## Running the Blog locally
 
 ```
-jekyll serve --livereload --draft
+bundle install
+bundle exec jekyll serve --livereload --drafts
 ```
-
-## Flexible-Jekyll theme
-
-I've used Flexible-Jekyll theme for this blog. Please check it out and support the author:
-
-[https://github.com/artemsheludko/flexible-jekyll](https://github.com/artemsheludko/flexible-jekyll)
