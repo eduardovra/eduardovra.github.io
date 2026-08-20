@@ -1,0 +1,40 @@
+<svg viewBox="0 0 440 176" role="img" aria-labelledby="pc-diagram-title" style="width:100%;max-width:560px;height:auto;display:block;margin:1.5rem auto;font-family:var(--mono)">
+  <title id="pc-diagram-title">The program counter pointing at the first of three variable-length SNES instructions: load a constant, increment it, store the result</title>
+  <text x="48" y="14" text-anchor="middle" fill="var(--accent)" font-size="13" font-family="var(--text)" font-weight="600">pc</text>
+  <line x1="48" y1="22" x2="48" y2="46" stroke="var(--accent)" stroke-width="1.5"/>
+  <polygon points="42,45 54,45 48,55" fill="var(--accent)"/>
+  <g fill="var(--code-bg)" stroke="var(--line)">
+    <rect x="20" y="58" width="56" height="42" rx="3"/>
+    <rect x="80" y="58" width="56" height="42" rx="3"/>
+    <rect x="160" y="58" width="56" height="42" rx="3"/>
+    <rect x="240" y="58" width="56" height="42" rx="3"/>
+    <rect x="300" y="58" width="56" height="42" rx="3"/>
+    <rect x="360" y="58" width="56" height="42" rx="3"/>
+  </g>
+  <g fill="var(--ink)" font-size="17" text-anchor="middle" dominant-baseline="middle">
+    <text x="48" y="80">A9</text>
+    <text x="108" y="80">42</text>
+    <text x="188" y="80">1A</text>
+    <text x="268" y="80">8D</text>
+    <text x="328" y="80">00</text>
+    <text x="388" y="80">20</text>
+  </g>
+  <g fill="none" stroke="var(--faint)" stroke-width="1.5">
+    <path d="M20 108 v6 H136 v-6"/>
+    <path d="M160 108 v6 H216 v-6"/>
+    <path d="M240 108 v6 H416 v-6"/>
+  </g>
+  <g fill="var(--ink)" font-size="13" text-anchor="middle">
+    <text x="78" y="134">LDA #$42</text>
+    <text x="188" y="134">INC A</text>
+    <text x="328" y="134">STA $2000</text>
+  </g>
+  <g fill="var(--faint)" font-size="11.5" text-anchor="middle" font-family="var(--text)">
+    <text x="78" y="152">2 bytes</text>
+    <text x="188" y="152">1 byte</text>
+    <text x="328" y="152">3 bytes</text>
+    <text x="78" y="167">2 cycles</text>
+    <text x="188" y="167">2 cycles</text>
+    <text x="328" y="167">4 cycles</text>
+  </g>
+</svg>
