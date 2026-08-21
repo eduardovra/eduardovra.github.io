@@ -2,34 +2,34 @@
 layout: post
 title: "From the SNES to the PlayStation: Understanding CPU pipelines"
 #date: 2026-08-19 00:00:00 -0300
-description: The SNES CPU runs one instruction at a time. The PlayStation's runs five at once, and it refuses to hide that from you.
+description: What I learned about CPU pipelines when moving from SNES to PlayStation emulation, and what it takes to emulate the R3000A correctly.
 #img: r3000a-pipeline.png
 tags: [emulator, mips, cpp, playstation, snes, cpu]
 ---
 
-I came to PlayStation emulation from the SNES expecting the jump to be about scale: faster CPU, more memory, a 3D chip instead of a tile engine. Same shape of problem, more of it.
+After spending some time writing a SNES emulator, I decided to move on to the PlayStation. I was expecting the jump to be mostly about scale: a faster CPU, more memory, and a 3D chip instead of a tile engine. The same shape of problem, just more of it.
 
-That's not what happened. The PlayStation's CPU is pipelined — five instructions in flight at once — and unlike anything I'd emulated before, it doesn't hide that from the program running on it. Get it wrong and the BIOS doesn't boot.
+That's not quite what I found. The PlayStation's CPU is pipelined, meaning it can have five instructions executing at the same time, and unlike anything I had emulated before, it doesn't hide that fact from the programs running on it. If the emulator doesn't get this behavior right, the BIOS won't even boot.
 
-TL;DR [here][repository] is the emulator, if you'd rather read code than prose.
+As always, you can choose to jump right into the [repository][repository] and see the code for yourself, or read this article first. It's up to you.
 
-### Where I was coming from: the 65816
+### The SNES CPU: the 65816
 
-The SNES CPU is a Ricoh 5A22, built around a [WDC 65816][65816] core. A 16-bit descendant of the 6502, it runs the way you'd naively draw a CPU on a whiteboard: fetch, decode, execute, move on. Then the next one.
+The SNES CPU is a Ricoh 5A22, built around a [WDC 65816][65816] core. It's a 16-bit descendant of the famous 6502, and it works the way you would naively draw a CPU on a whiteboard: fetch an instruction, decode it, execute it, and move on to the next one.
 
-One piece of vocabulary first, since the whole post turns on it. The **program counter**, `pc`, is a register holding the address of the next instruction to execute. Executing an instruction advances it past that instruction's bytes; a jump or a branch sets it somewhere else entirely.
+Before proceeding, it's important to cover one piece of vocabulary, since the whole post depends on it. The **program counter** (`pc`) is a register that holds the address of the next instruction to be executed. Executing an instruction advances it past that instruction's bytes, while a jump or a branch sets it to somewhere else entirely.
 
-Here's a stretch of SNES code in memory, with `pc` sitting at the start of it. The accumulator is in 8-bit mode here — widen it to 16 and `LDA #$42` takes an extra byte and an extra cycle:
+Consider the stretch of SNES code below, with `pc` sitting at the start of it. The accumulator is in 8-bit mode here (in 16-bit mode, `LDA #$42` would take an extra byte and an extra cycle):
 
 {% include diagrams/snes-memory-bytes.svg %}
 
-Three instructions, and together they actually do something: put `$42` in the accumulator — `A`, the 65816's main working register — add one to it, and store the result at address `$2000`. `A` ends up holding `$43`, and so does memory at `$2000`.
+We have three instructions, and together they do something useful: put the value `$42` in the accumulator (`A`, the 65816's main working register), add one to it, and store the result at address `$2000`. In the end, `A` holds `$43`, and so does the memory at `$2000`.
 
-Their lengths differ. `LDA #$42` takes two bytes, the opcode `A9` and the constant. `INC A` takes a single byte, `1A`, since it needs no operand at all. `STA $2000` takes three: the opcode `8D` and then the address, low byte first, which is why it sits in memory as `8D 00 20`.
+Notice that the instructions have different lengths. `LDA #$42` takes two bytes: the opcode `A9` and the constant. `INC A` takes a single byte (`1A`), since it needs no operand at all. `STA $2000` takes three: the opcode `8D` followed by the address, low byte first, which is why it appears in memory as `8D 00 20`.
 
-And when `INC A` reads the accumulator, it finds the `$42` the previous instruction just put there. Of course it does. What else would it find? Hold on to that question.
+Also notice that when `INC A` reads the accumulator, it finds the `$42` that the previous instruction just put there. This seems too obvious to even mention, but keep it in mind, because we'll come back to it later.
 
-No markers separate the instructions — the first byte tells you the length. Which makes the interpreter the loop everybody writes first: a switch on the opcode, each case returning a cycle count.
+There are no markers separating the instructions: the first byte tells you the length. That's why the first interpreter everybody writes is a loop with a switch on the opcode, where each case returns a cycle count:
 
 ```c
 u8 opcode = read(pc++);
@@ -53,11 +53,11 @@ case 0x8D:                  // STA abs - store A at a 16-bit address
 }
 ```
 
-The important thing isn't the code, it's the shape of it. Every case is a closed box: by the time it hits that `return`, the machine is completely consistent — nothing half-finished, no value in flight. Which means you can write these opcodes one at a time, in any order, and the two hundredth one can't break the first.
+The important thing here is not the code itself, but the shape of it. Every case is a closed box: by the time it hits the `return` statement, the machine is in a completely consistent state. Nothing is half-finished, and no value is in flight. This means you can write these opcodes one at a time, in any order, and the two hundredth one can't break the first.
 
 ### Why pipeline at all
 
-At the hardware level, executing an instruction isn't one job, it's several, and each uses a different part of the chip. Do them strictly one at a time and most of your silicon idles. So a pipeline does what a car factory does: it doesn't wait for one car to be finished before starting the next. Five instructions are in flight at any moment, each one in a different stage. The [R3000A][r3000a] in the PlayStation has five:
+At the hardware level, executing an instruction is not a single job, but several, and each of them uses a different part of the chip. If we do them strictly one at a time, most of the silicon stays idle. A pipeline works like a car factory assembly line: it doesn't wait for one car to be finished before starting the next. At any given moment, five instructions are in flight, each one in a different stage. The [R3000A][r3000a] CPU used in the PlayStation has five stages:
 
 ```
 IF   fetch the instruction from memory
@@ -67,49 +67,49 @@ MEM  read or write data memory
 WB   write the result back to the register file
 ```
 
-Here's what that looks like with real instructions. I picked five that don't depend on each other, which turns out to matter:
+Here's what this looks like with real instructions. I picked five that don't depend on each other, and as we'll see soon, this detail matters:
 
 {% include diagrams/r3000a-pipeline.svg %}
 
-Any single instruction still takes five cycles, but from cycle 5 onward one *finishes* every cycle — a 5x throughput win for basically no extra silicon, and why this CPU gets described as roughly one instruction per cycle at 33.87 MHz.
+Any single instruction still takes five cycles to complete, but from cycle 5 onward, one instruction *finishes* every cycle. That's a 5x gain in throughput for almost no extra silicon, and it's the reason this CPU is usually described as executing roughly one instruction per cycle at 33.87 MHz.
 
-Which sounds like a pure win. Here's where it falls apart.
+This sounds like a pure win, right? Now let's see where it falls apart.
 
-### How it breaks: hazards
+### Pipeline hazards
 
-All of which holds up only while each instruction is independent of the ones around it. Instructions usually aren't.
+All of this only holds up while each instruction is independent of the ones around it. In practice, instructions usually aren't.
 
-Look at the shaded IF cells again — the instruction fetches. That diagonal is `pc`, moving on one instruction every cycle, whatever the instructions themselves are up to. Two cases go wrong.
+Take a look at the shaded IF cells in the diagram again (the instruction fetches). That diagonal is `pc` moving on to the next instruction every cycle, no matter what the instructions themselves are doing. There are two cases where this goes wrong.
 
-**A branch.** Suppose the first instruction were a branch. Its whole job is to decide what `pc` should be next — but the second instruction is fetched in cycle 2, while the branch is still in its second stage. `pc` runs one instruction ahead of the instruction that gets to change it.
+**A branch.** Suppose the first instruction is a branch. Its whole job is to decide what `pc` should be next, but the second instruction is fetched in cycle 2, while the branch is still in its second stage. In other words, `pc` runs one instruction ahead of the instruction that is supposed to change it.
 
 ```
 beq   $t0, $zero, target   # decides where to go next...
 addiu $a0, $a0, 1          # ...but this was already fetched
 ```
 
-The consequence: `addiu` runs, whichever way the branch goes.
+The consequence: `addiu` runs no matter which way the branch goes.
 
-**A load.** The first instruction *is* a load. Its value arrives from memory in MEM, cycle 4 — but the instruction behind it reads its registers in RD, cycle 3, one cycle earlier. The data physically isn't there yet.
+**A load.** Now suppose the first instruction is a load. Its value arrives from memory in the MEM stage, at cycle 4. But the instruction behind it reads its registers in the RD stage, at cycle 3, one cycle earlier. The data simply isn't there yet.
 
 ```
 lw    $t0, 0($a0)     # $t0 arrives in cycle 4
 addu  $t1, $t0, $t2   # but reads $t0 in cycle 3
 ```
 
-The consequence: `addu` gets whatever `$t0` held before the load.
+The consequence: `addu` gets whatever value `$t0` held before the load.
 
-These are called *hazards*, and most CPUs fix them in hardware: interlocks that stall the pipeline, forwarding paths that shortcut a result backwards. Modern processors go much further — branch predictors that guess where a branch will go and start work on the answer, out-of-order execution, speculation they can throw away if the guess was wrong. All of it exists so that software never has to know.
+These situations are called *hazards*, and most CPUs fix them in hardware: interlocks that stall the pipeline, and forwarding paths that shortcut a result backwards. Modern processors go much further, with branch predictors that guess where a branch will go, out-of-order execution, and speculation that can be thrown away if the guess was wrong. All of this exists so that software never has to know about the pipeline.
 
-The R3000A largely doesn't bother. It exposes both hazards and expects software to work around them.
+The R3000A largely doesn't bother. It exposes both hazards and expects the software to work around them.
 
-### What it means if you're writing assembly
+### What this means when writing assembly
 
 #### The branch delay slot
 
-The instruction immediately after a branch **always executes**, taken or not. It was already fetched, and the hardware doesn't throw it away. That position is called the [*delay slot*][delay-slot]: the instruction you read *after* a jump runs *before* the jump lands.
+The instruction immediately after a branch **always executes**, whether the branch is taken or not. It was already fetched, and the hardware doesn't throw it away. This position is called the [*delay slot*][delay-slot]: the instruction you read *after* a jump actually runs *before* the jump lands.
 
-Consider the snippet below — real BIOS code, a function returning to its caller:
+Consider the snippet below. It's real BIOS code, from a function returning to its caller:
 
 ```
 80054190  lw      $t7, 0x0($sp)
@@ -117,9 +117,9 @@ Consider the snippet below — real BIOS code, a function returning to its calle
 80054198  addiu   $sp, $sp, 0x8    # ...and this ran too
 ```
 
-`jr $ra` is an unconditional jump, so there's no question of whether it was taken. It jumped: `$ra` held `800541EC`, and that is where execution continued. But `$sp` moved as well, from `801FFD50` to `801FFD58`. The instruction sitting *after* the return ran anyway, and it did real work — it popped the stack frame on the way out.
+`jr $ra` is an unconditional jump, so there's no question about whether it was taken or not. It jumped: `$ra` held `800541EC`, and that's where execution continued. But `$sp` was updated as well, from `801FFD50` to `801FFD58`. The instruction sitting *after* the return ran anyway, and it did real work: it popped the stack frame on the way out.
 
-The nice part is that this isn't purely a tax, it's a free instruction slot. Here's real BIOS code from my emulator's debugger — a byte-copy loop, `$a1` the source, `$a0` the destination, `$a2` the count:
+The nice part is that this is not just a tax to be paid, it's a free instruction slot. Below is another piece of real BIOS code, taken from my emulator's debugger. It's a byte-copy loop, where `$a1` is the source, `$a0` the destination, and `$a2` the count:
 
 ```
 BFC02B68  lbu     $t6, 0x0($a1)      # load a byte from the source
@@ -130,23 +130,23 @@ BFC02B78  bgtz    $a2, 0xBFC02B68    # more to do? go round again
 BFC02B7C  sb      $t6, -0x1($a0)     # <- delay slot: store the byte
 ```
 
-The store is in the delay slot, so it runs on every iteration — including the last one, where the branch isn't taken and the byte still needs storing. The offset is `-0x1($a0)` because `$a0` was already incremented. Whoever wrote this bent the loop around the delay slot rather than wasting it.
+The store is placed in the delay slot, so it runs on every iteration, including the last one, where the branch isn't taken and the byte still needs to be stored. The offset is `-0x1($a0)` because `$a0` was already incremented at that point. Whoever wrote this bent the loop around the delay slot instead of wasting it.
 
 #### The load delay slot
 
-The value from a load isn't in its target register for the next instruction. It lands one instruction later, and the pipeline shows you why:
+The value from a load isn't available in its target register for the next instruction. It lands one instruction later, and the pipeline diagram shows why:
 
 {% include diagrams/load-delay-hazard.svg %}
 
-So the rule: never use a loaded register in the instruction right after the load.
+So the rule is: never use a loaded register in the instruction right after the load.
 
-This one is nastier than the branch slot, because nothing looks wrong. The disassembly reads naturally. You just get a stale register, and a game that renders garbage twenty minutes later.
+This one is nastier than the branch slot, because nothing looks wrong. The disassembly reads naturally. You just get a stale register value, and a game that renders garbage twenty minutes later.
 
-Look back at the BIOS loop and you'll see this rule obeyed too: `$t6` is loaded at `BFC02B68` and not read until `BFC02B7C`. Those three `addiu`s aren't only advancing the pointers and the counter, they're covering the load's delay.
+If you look back at the BIOS loop, you'll see this rule being obeyed too: `$t6` is loaded at `BFC02B68` and it's not read until `BFC02B7C`. Those three `addiu` instructions are not only advancing the pointers and the counter, they're also covering the load's delay.
 
-### Does the compiler solve this when you write C?
+### Does the compiler handle this when you write C?
 
-This was the question I was most curious about, so I actually checked. Short answer: yes, completely, and you never find out it happened.
+This was the question I was most curious about, so I checked it myself. The short answer is: yes, completely, and you never find out it happened.
 
 Here's about the smallest C function that trips the load delay:
 
@@ -158,7 +158,7 @@ int add_loaded(int *p, int k)
 }
 ```
 
-Compiled for MIPS I (`clang -target mipsel-unknown-elf -march=mips1 -O1`), the body comes out as:
+Compiled for MIPS I (using `clang -target mipsel-unknown-elf -march=mips1 -O1`), the body comes out as:
 
 ```
 lw      $1, 0($4)
@@ -169,9 +169,9 @@ jr      $ra               # <- jump to $ra: the return
 addiu   $sp, $sp, 8       # <- branch delay slot, filled with real work
 ```
 
-Both hazards, handled, in a four-line function. Nothing useful to put after the load, so the compiler inserted a `nop`. For the branch delay slot it *did* have something — the stack pointer adjustment — so the return costs nothing extra.
+Both hazards were handled in a four-line function. There was nothing useful to put after the load, so the compiler inserted a `nop`. For the branch delay slot, it *did* have something available (the stack pointer adjustment), so the return costs nothing extra.
 
-Give it more to work with and it does better:
+If we give the compiler more to work with, it does even better:
 
 ```c
 int sum3(int *p)
@@ -192,9 +192,9 @@ nop
 addu    $2, $1, $2
 ```
 
-The second load slots neatly into the first load's shadow, because it doesn't depend on it — the scheduler doing what a careful assembly programmer would do by hand.
+The second load slots neatly into the first load's shadow, because it doesn't depend on it. The scheduler is doing exactly what a careful assembly programmer would do by hand.
 
-The compiler also wraps every function body in these:
+The compiler also wraps every function body between these directives:
 
 ```
 .set noreorder
@@ -202,19 +202,19 @@ The compiler also wraps every function body in these:
 .set reorder
 ```
 
-[`.set noreorder`][gas-mips] tells the assembler *don't touch my instruction order, I've handled the delay slots myself*. It exists because the assembler will do this job too, dropping in `nop`s to keep hand-written assembly correct.
+[`.set noreorder`][gas-mips] tells the assembler: *don't touch my instruction order, I've handled the delay slots myself*. This directive exists because the assembler can do this job too, dropping in `nop`s to keep hand-written assembly correct.
 
-So the abstraction never really disappeared. It moved. The hardware declined to hide the pipeline, and the toolchain hides it instead — and you can switch that off when you're writing a boot ROM and you want the raw machine.
+So the abstraction never really disappeared, it just moved. The hardware declined to hide the pipeline, and the toolchain hides it instead. And you can switch that off when you're writing a boot ROM and want to deal with the raw machine.
 
 ### Show me the code
 
-So what does any of this mean for an emulator?
+So, what does all of this mean for an emulator?
 
-The good news, and the thing that took me longest to believe: **you do not have to simulate five pipeline stages.** Only the two places where the overlap is *observable*. Everything else is invisible, and you keep the one-instruction-at-a-time interpreter loop you'd write for a 65816 — about ten lines of extra state.
+The good news, and the thing that took me the longest to believe, is that **you don't have to simulate the five pipeline stages**. Only the two places where the overlap is *observable*. Everything else is invisible, so you get to keep the same one-instruction-at-a-time interpreter loop you'd write for a 65816, with about ten lines of extra state.
 
 #### Two program counters
 
-The branch delay slot means you can't have a single `pc`. You need both what's executing now and what's queued behind it:
+Because of the branch delay slot, we can't have a single `pc` anymore. We need to keep track of both what's executing now and what's queued behind it:
 
 ```cpp
 u32 pc = 0;          // instruction about to execute
@@ -222,7 +222,7 @@ u32 next_pc = 0;     // the one after it; a branch rewrites this
 u32 current_pc = 0;  // the one executing now, kept for exceptions
 ```
 
-The whole trick is the ordering in `step()`. Advance both counters *before* executing the instruction:
+The whole trick is the ordering inside the `step()` function. Both counters are advanced *before* executing the instruction:
 
 ```cpp
 pc = next_pc;
@@ -231,7 +231,7 @@ next_pc += 4;
 execute(instr);
 ```
 
-Now a branch writes to `next_pc`, and `pc` — which already points at the delay slot instruction — is left alone. The delay slot runs next, then the branch target. The behaviour falls out of the data structure instead of a special case, and branching becomes just:
+Now a branch writes to `next_pc`, and `pc`, which already points at the delay slot instruction, is left alone. The delay slot runs next, and then the branch target. The behavior falls out of the data structure instead of requiring a special case, and branching becomes just:
 
 ```cpp
 void Cpu::branch(u32 offset)
@@ -243,7 +243,7 @@ void Cpu::branch(u32 offset)
 
 #### Two register files
 
-The load delay slot means a write can't be visible to the instruction immediately after the one that issued it. So instructions read from one array and write to another:
+Because of the load delay slot, a write can't be visible to the instruction immediately after the one that issued it. To achieve this, instructions read from one array and write to another:
 
 ```cpp
 // regs holds the values instructions read; writes go to out_regs
@@ -282,13 +282,13 @@ u32 Cpu::step()
 }
 ```
 
-Read that in order and it's exactly the rule: the previous instruction's load lands before this one runs, and this one's own writes don't become visible until it's over. Two arrays and a copy, and every load is correct — including the ones you haven't written yet. The alternative is handling the delay in each load opcode individually, which works right up until you add the twentieth one at midnight.
+If you read this in order, it's exactly the rule we described: the previous instruction's load lands before this one runs, and this one's own writes only become visible after it's over. With two arrays and a copy, every load is correct, including the ones you haven't written yet. The alternative would be handling the delay in each load opcode individually, which works fine right up until you add the twentieth one late at night.
 
 ### Wrapping-up
 
-That was the surprise for me. I didn't expect a CPU to make that kind of trade-off, handing a hardware problem over to whoever writes the instructions. It's one of the most interesting things I've found writing this emulator so far.
+That was the big surprise for me in this project. I didn't expect a CPU to make this kind of trade-off, handing a hardware problem over to whoever writes the instructions. It's one of the most interesting things I've found while writing this emulator so far.
 
-The emulator is [here][repository], and the CPU is one file. [psx-spx][psx-spx] is the hardware reference I kept open the whole time, and the [ps1-tests][ps1-tests] suite caught most of my mistakes.
+The emulator is available [here][repository], and the whole CPU is a single file. [psx-spx][psx-spx] is the hardware reference I kept open the whole time, and the [ps1-tests][ps1-tests] test suite caught most of my mistakes.
 
 [repository]: https://github.com/eduardovra/wobble-psx
 [r3000a]: https://en.wikipedia.org/wiki/R3000
