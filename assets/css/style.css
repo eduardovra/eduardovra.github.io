@@ -175,7 +175,6 @@ a:hover { color: var(--accent); }
 
 .hero p {
   margin: 18px 0 0 0;
-  max-width: 560px;
   font-size: 17px;
   line-height: 1.6;
   color: var(--muted);
