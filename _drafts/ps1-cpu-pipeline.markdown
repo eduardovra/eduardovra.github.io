@@ -67,7 +67,9 @@ MEM  read or write data memory
 WB   write the result back to the register file
 ```
 
-Here's what this looks like with real instructions. I picked five that don't depend on each other, and as we'll see soon, this detail matters:
+A quick note on notation, since MIPS assembly shows up from here on. Registers are written with a `$`: `$t0` to `$t9` are scratch registers, `$a0` to `$a3` hold function arguments, `$v0` holds a return value, `$sp` is the stack pointer and `$ra` the return address. There's also `$zero`, which always reads as zero. The destination comes first, so `addu $t1, $t0, $t2` means "add `$t0` and `$t2`, put the result in `$t1`", and `lw $t0, 0($a0)` loads a word from the address in `$a0`, with an offset of zero.
+
+Here's what this looks like with real instructions. I picked five that don't depend on each other (a load, two adds, a shift and a bitwise or), and as we'll see soon, this detail matters:
 
 {% include diagrams/r3000a-pipeline.svg %}
 
@@ -88,7 +90,7 @@ beq   $t0, $zero, target   # decides where to go next...
 addiu $a0, $a0, 1          # ...but this was already fetched
 ```
 
-The consequence: `addiu` runs no matter which way the branch goes.
+`beq` jumps to `target` when its two registers are equal, so this one jumps when `$t0` is zero. The consequence: `addiu` runs no matter which way the branch goes.
 
 **A load.** Now suppose the first instruction is a load. Its value arrives from memory in the MEM stage, at cycle 4. But the instruction behind it reads its registers in the RD stage, at cycle 3, one cycle earlier. The data simply isn't there yet.
 
@@ -109,7 +111,7 @@ The R3000A largely doesn't bother. It exposes both hazards and expects the softw
 
 The instruction immediately after a branch **always executes**, whether the branch is taken or not. It was already fetched, and the hardware doesn't throw it away. This position is called the [*delay slot*][delay-slot]: the instruction you read *after* a jump actually runs *before* the jump lands.
 
-Consider the snippet below. It's real BIOS code, from a function returning to its caller:
+Consider the snippet below. It's real BIOS code, from a function returning to its caller, with the address of each instruction in the first column:
 
 ```
 80054190  lw      $t7, 0x0($sp)
@@ -144,9 +146,9 @@ This one is nastier than the branch slot, because nothing looks wrong. The disas
 
 If you look back at the BIOS loop, you'll see this rule being obeyed too: `$t6` is loaded at `BFC02B68` and it's not read until `BFC02B7C`. Those three `addiu` instructions are not only advancing the pointers and the counter, they're also covering the load's delay.
 
-### Does the compiler handle this when you write C?
+### What the compiler emits
 
-This was the question I was most curious about, so I checked it myself. The short answer is: yes, completely, and you never find out it happened.
+I guessed the compiler had to deal with this, since I don't see any other option. What was interesting was analyzing the kind of code it emits, so I compiled a few small functions and read the output.
 
 Here's about the smallest C function that trips the load delay:
 
@@ -158,7 +160,7 @@ int add_loaded(int *p, int k)
 }
 ```
 
-Compiled for MIPS I (using `clang -target mipsel-unknown-elf -march=mips1 -O1`), the body comes out as:
+Compiled for MIPS I (using `clang -target mipsel-unknown-elf -march=mips1 -O1`), the body comes out as below. Clang prints registers by number instead of by name here, so `$4` and `$5` are the two arguments (`p` and `k`), and `$2` is where a return value goes:
 
 ```
 lw      $1, 0($4)
@@ -192,7 +194,7 @@ nop
 addu    $2, $1, $2
 ```
 
-The second load slots neatly into the first load's shadow, because it doesn't depend on it. The scheduler is doing exactly what a careful assembly programmer would do by hand.
+The offsets step by four because these are 32-bit words, so `0($4)`, `4($4)` and `8($4)` are `p[0]`, `p[1]` and `p[2]`. The second load slots neatly into the first load's shadow, because it doesn't depend on it. The scheduler is doing exactly what a careful assembly programmer would do by hand.
 
 The compiler also wraps every function body between these directives:
 
@@ -206,11 +208,9 @@ The compiler also wraps every function body between these directives:
 
 So the abstraction never really disappeared, it just moved. The hardware declined to hide the pipeline, and the toolchain hides it instead. And you can switch that off when you're writing a boot ROM and want to deal with the raw machine.
 
-### Show me the code
+### What this means for the emulator
 
-So, what does all of this mean for an emulator?
-
-The good news, and the thing that took me the longest to believe, is that **you don't have to simulate the five pipeline stages**. Only the two places where the overlap is *observable*. Everything else is invisible, so you get to keep the same one-instruction-at-a-time interpreter loop you'd write for a 65816, with about ten lines of extra state.
+The good news is that **you don't have to simulate the five pipeline stages**. Only the two places where the overlap is observable have to be reproduced, and everything else is invisible from the outside. This means we can keep the same one-instruction-at-a-time interpreter loop we'd write for a 65816, adding about ten lines of extra state.
 
 #### Two program counters
 
