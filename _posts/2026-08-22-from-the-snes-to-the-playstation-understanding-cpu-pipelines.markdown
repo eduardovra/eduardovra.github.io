@@ -1,9 +1,8 @@
 ---
 layout: post
 title: "From the SNES to the PlayStation: Understanding CPU pipelines"
-#date: 2026-08-19 00:00:00 -0300
+date: 2026-08-22 00:00:00 -0300
 description: What I learned about CPU pipelines when moving from SNES to PlayStation emulation, and what it takes to emulate the R3000A correctly.
-#img: r3000a-pipeline.png
 tags: [emulator, mips, cpp, playstation, snes, cpu]
 ---
 
@@ -17,7 +16,7 @@ As always, you can choose to jump right into the [repository][repository] and se
 
 The SNES CPU is a Ricoh 5A22, built around a [WDC 65816][65816] core. It's a 16-bit descendant of the famous 6502, and it works the way you would naively draw a CPU on a whiteboard: fetch an instruction, decode it, execute it, and move on to the next one.
 
-Before proceeding, it's important to cover one piece of vocabulary, since the whole post depends on it. The **program counter** (`pc`) is a register that holds the address of the next instruction to be executed. Executing an instruction advances it past that instruction's bytes, while a jump or a branch sets it to somewhere else entirely.
+One piece of vocabulary first, since the whole post leans on it: the **program counter** (`pc`) holds the address of the next instruction, advancing past each instruction's bytes on its own unless a jump or a branch overwrites it.
 
 Consider the stretch of SNES code below, with `pc` sitting at the start of it. The accumulator is in 8-bit mode here (in 16-bit mode, `LDA #$42` would take an extra byte and an extra cycle):
 
@@ -326,7 +325,7 @@ Let's follow one load through it. When `lw` executes, it calls `schedule_load`, 
 
 With two arrays and a copy, every load is handled the same way, including the ones you haven't written yet. The alternative would be handling the delay in each load opcode individually, which works fine right up until you add the twentieth one late at night.
 
-### Wrapping-up
+### Wrapping up
 
 That was the big surprise for me in this project. I didn't expect a CPU to make this kind of trade-off, handing a hardware problem over to whoever writes the instructions. It's one of the most interesting things I've found while writing this emulator so far.
 
