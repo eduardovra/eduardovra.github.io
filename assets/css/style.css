@@ -151,6 +151,7 @@ a:hover { color: var(--accent); }
 /* Main containers */
 
 .site-main {
+  width: 100%;
   max-width: 1080px;
   margin: 0 auto;
   padding: 0 24px;
@@ -271,7 +272,12 @@ a:hover { color: var(--accent); }
 
 /* Post content */
 
-.post-content { margin-top: 36px; color: var(--body); font-size: 18px; }
+.post-content {
+  margin-top: 36px;
+  color: var(--body);
+  font-size: 18px;
+  overflow-wrap: break-word;
+}
 
 .post-content p { margin: 0 0 24px 0; }
 
