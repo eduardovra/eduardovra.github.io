@@ -160,7 +160,7 @@ int add_loaded(int *p, int k)
 }
 ```
 
-Compiled for MIPS I (using `clang -target mipsel-unknown-elf -march=mips1 -O1`), the body comes out as below. Clang prints registers by number instead of by name here, so `$4` and `$5` are the two arguments (`p` and `k`), and `$2` is where a return value goes:
+Compiled for MIPS I (using `clang -target mipsel-unknown-elf -march=mips1 -O1`), we get the body below. Clang prints registers by number instead of by name, so `$4` and `$5` are the two arguments (`p` and `k`), and `$2` is where a return value goes:
 
 ```
 lw      $1, 0($4)
@@ -210,7 +210,9 @@ So the abstraction never really disappeared, it just moved. The hardware decline
 
 ### What this means for the emulator
 
-The good news is that **you don't have to simulate the five pipeline stages**. Only the two places where the overlap is observable have to be reproduced, and everything else is invisible from the outside. This means we can keep the same one-instruction-at-a-time interpreter loop we'd write for a 65816, adding about ten lines of extra state.
+The good news is that **you don't have to simulate the five pipeline stages**. We only have to reproduce the two places where the overlap is observable, since everything else is invisible from the outside. This means we can keep the same one-instruction-at-a-time interpreter loop we'd write for a 65816, adding just a handful of extra state.
+
+All of this lives in a single function, `Cpu::step()`, which runs one instruction. We'll build it up in two passes, one for each hazard: first the branch delay slot, then the load delay slot. The snippets are simplified, since in practice `step()` handles a few more things.
 
 #### Two program counters
 
@@ -225,10 +227,22 @@ u32 current_pc = 0;  // the one executing now, kept for exceptions
 The whole trick is the ordering inside the `step()` function. Both counters are advanced *before* executing the instruction:
 
 ```cpp
-pc = next_pc;
-next_pc += 4;
+u32 Cpu::step()
+{
+    current_pc = pc;
 
-execute(instr);
+    const u32 instr = *bus.fetch(current_pc);
+
+    // Advance both counters before executing, so a branch taken by
+    // this instruction rewrites next_pc while pc — already pointing
+    // at the delay slot — is left alone.
+    pc = next_pc;
+    next_pc += 4;
+
+    execute(instr);
+
+    return CYCLES_PER_INSTRUCTION;
+}
 ```
 
 Now a branch writes to `next_pc`, and `pc`, which already points at the delay slot instruction, is left alone. The delay slot runs next, and then the branch target. The behavior falls out of the data structure instead of requiring a special case, and branching becomes just:
@@ -236,14 +250,17 @@ Now a branch writes to `next_pc`, and `pc`, which already points at the delay sl
 ```cpp
 void Cpu::branch(u32 offset)
 {
+    // The offset counts instructions, not bytes, so it is stored
+    // pre-divided by 4 — shifting it back up buys 16 bits of encoding
+    // a ±128 KB reach. It is relative to the delay slot, which pc
+    // already points at.
     next_pc = pc + (offset << 2);
-    branching = true;
 }
 ```
 
 #### Two register files
 
-Because of the load delay slot, a write can't be visible to the instruction immediately after the one that issued it. To achieve this, instructions read from one array and write to another:
+Because of the load delay slot, a load's result can't be visible to the instruction immediately after it. To achieve this, instructions read from one array and write to another:
 
 ```cpp
 // regs holds the values instructions read; writes go to out_regs
@@ -252,37 +269,62 @@ std::array<u32, 32> regs{};
 std::array<u32, 32> out_regs{};
 
 // The load issued by the previous instruction, waiting out its
-// delay slot. Register 0 means "none" - a load into $zero is a
+// delay slot. Register 0 means "none" — a load into $zero is a
 // no-op anyway, so it needs no separate flag.
 u32 load_reg = 0;
 u32 load_value = 0;
 ```
 
-And `step()` gets a shape that mirrors the hardware:
+Two small helpers do the actual work. Writing a register puts the value in `out_regs`, where the current instruction can't read it:
+
+```cpp
+void Cpu::set_reg(u32 index, u32 value)
+{
+    out_regs[index] = value;
+    out_regs[0] = 0;  // $zero is hardwired
+}
+```
+
+And a load doesn't write to a register at all, it just queues the value:
+
+```cpp
+void Cpu::schedule_load(u32 index, u32 value)
+{
+    load_reg = index;
+    load_value = value;
+}
+```
+
+Finally, `step()` is the same function as before, now with the load handling added at the top and the copy at the bottom:
 
 ```cpp
 u32 Cpu::step()
 {
     current_pc = pc;
 
-    // the load issued by the previous instruction lands now
+    // The load issued by the previous instruction lands now. It goes
+    // to out_regs, so this instruction still can't read it.
     set_reg(load_reg, load_value);
     load_reg = 0;
     load_value = 0;
+
+    const u32 instr = *bus.fetch(current_pc);
 
     pc = next_pc;
     next_pc += 4;
 
     execute(instr);
 
-    // writes made by this instruction become readable from here on
+    // Writes made by this instruction become readable from here on.
     regs = out_regs;
 
-    return CYCLES_PER_INSTRUCTION + bus.stall_cycles;
+    return CYCLES_PER_INSTRUCTION;
 }
 ```
 
-If you read this in order, it's exactly the rule we described: the previous instruction's load lands before this one runs, and this one's own writes only become visible after it's over. With two arrays and a copy, every load is correct, including the ones you haven't written yet. The alternative would be handling the delay in each load opcode individually, which works fine right up until you add the twentieth one late at night.
+Let's follow one load through it. When `lw` executes, it calls `schedule_load`, so no register is written at all. On the next call to `step()`, the value lands in `out_regs`, where the instruction running in that step still can't read it. That instruction is the delay slot, and it gets the stale value, just like the hardware would. Only at the end of that step does `regs = out_regs` make the value readable. The load ends up arriving one instruction late, because it takes two steps to cross the two arrays.
+
+With two arrays and a copy, every load is handled the same way, including the ones you haven't written yet. The alternative would be handling the delay in each load opcode individually, which works fine right up until you add the twentieth one late at night.
 
 ### Wrapping-up
 
