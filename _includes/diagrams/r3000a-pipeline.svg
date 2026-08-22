@@ -1,70 +1,346 @@
-<svg viewBox="0 0 544 230" role="img" aria-labelledby="pipe-title" style="width:100%;max-width:660px;height:auto;display:block;margin:1.5rem auto;font-family:var(--mono)">
-  <title id="pipe-title">Five MIPS instructions overlapping in the R3000A five-stage pipeline, with the instruction the program counter is fetching highlighted each cycle</title>
-  <text x="8" y="24" fill="var(--faint)" font-size="11.5" font-family="var(--text)">cycle</text>
-  <text x="177" y="24" text-anchor="middle" fill="var(--faint)" font-size="12">1</text>
-  <text x="219" y="24" text-anchor="middle" fill="var(--faint)" font-size="12">2</text>
-  <text x="261" y="24" text-anchor="middle" fill="var(--faint)" font-size="12">3</text>
-  <text x="303" y="24" text-anchor="middle" fill="var(--faint)" font-size="12">4</text>
-  <text x="345" y="24" text-anchor="middle" fill="var(--faint)" font-size="12">5</text>
-  <text x="387" y="24" text-anchor="middle" fill="var(--faint)" font-size="12">6</text>
-  <text x="429" y="24" text-anchor="middle" fill="var(--faint)" font-size="12">7</text>
-  <text x="471" y="24" text-anchor="middle" fill="var(--faint)" font-size="12">8</text>
-  <text x="513" y="24" text-anchor="middle" fill="var(--faint)" font-size="12">9</text>
-  <text x="8" y="55" fill="var(--ink)" font-size="12">lw    $t0, 0($a0)</text>
-  <rect x="158" y="39" width="38" height="24" rx="3" fill="var(--accent)" stroke="var(--accent)"/>
-  <text x="177" y="55" text-anchor="middle" font-size="12" fill="var(--bg)" font-weight="600">IF</text>
-  <rect x="200" y="39" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="219" y="55" text-anchor="middle" font-size="12" fill="var(--muted)">RD</text>
-  <rect x="242" y="39" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="261" y="55" text-anchor="middle" font-size="12" fill="var(--muted)">ALU</text>
-  <rect x="284" y="39" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="303" y="55" text-anchor="middle" font-size="12" fill="var(--muted)">MEM</text>
-  <rect x="326" y="39" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="345" y="55" text-anchor="middle" font-size="12" fill="var(--muted)">WB</text>
-  <text x="8" y="85" fill="var(--ink)" font-size="12">addiu $a0, $a0, 4</text>
-  <rect x="200" y="69" width="38" height="24" rx="3" fill="var(--accent)" stroke="var(--accent)"/>
-  <text x="219" y="85" text-anchor="middle" font-size="12" fill="var(--bg)" font-weight="600">IF</text>
-  <rect x="242" y="69" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="261" y="85" text-anchor="middle" font-size="12" fill="var(--muted)">RD</text>
-  <rect x="284" y="69" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="303" y="85" text-anchor="middle" font-size="12" fill="var(--muted)">ALU</text>
-  <rect x="326" y="69" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="345" y="85" text-anchor="middle" font-size="12" fill="var(--muted)">MEM</text>
-  <rect x="368" y="69" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="387" y="85" text-anchor="middle" font-size="12" fill="var(--muted)">WB</text>
-  <text x="8" y="115" fill="var(--ink)" font-size="12">addu  $t1, $t1, $t2</text>
-  <rect x="242" y="99" width="38" height="24" rx="3" fill="var(--accent)" stroke="var(--accent)"/>
-  <text x="261" y="115" text-anchor="middle" font-size="12" fill="var(--bg)" font-weight="600">IF</text>
-  <rect x="284" y="99" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="303" y="115" text-anchor="middle" font-size="12" fill="var(--muted)">RD</text>
-  <rect x="326" y="99" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="345" y="115" text-anchor="middle" font-size="12" fill="var(--muted)">ALU</text>
-  <rect x="368" y="99" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="387" y="115" text-anchor="middle" font-size="12" fill="var(--muted)">MEM</text>
-  <rect x="410" y="99" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="429" y="115" text-anchor="middle" font-size="12" fill="var(--muted)">WB</text>
-  <text x="8" y="145" fill="var(--ink)" font-size="12">sll   $t3, $t3, 2</text>
-  <rect x="284" y="129" width="38" height="24" rx="3" fill="var(--accent)" stroke="var(--accent)"/>
-  <text x="303" y="145" text-anchor="middle" font-size="12" fill="var(--bg)" font-weight="600">IF</text>
-  <rect x="326" y="129" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="345" y="145" text-anchor="middle" font-size="12" fill="var(--muted)">RD</text>
-  <rect x="368" y="129" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="387" y="145" text-anchor="middle" font-size="12" fill="var(--muted)">ALU</text>
-  <rect x="410" y="129" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="429" y="145" text-anchor="middle" font-size="12" fill="var(--muted)">MEM</text>
-  <rect x="452" y="129" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="471" y="145" text-anchor="middle" font-size="12" fill="var(--muted)">WB</text>
-  <text x="8" y="175" fill="var(--ink)" font-size="12">or    $t4, $t5, $t6</text>
-  <rect x="326" y="159" width="38" height="24" rx="3" fill="var(--accent)" stroke="var(--accent)"/>
-  <text x="345" y="175" text-anchor="middle" font-size="12" fill="var(--bg)" font-weight="600">IF</text>
-  <rect x="368" y="159" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="387" y="175" text-anchor="middle" font-size="12" fill="var(--muted)">RD</text>
-  <rect x="410" y="159" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="429" y="175" text-anchor="middle" font-size="12" fill="var(--muted)">ALU</text>
-  <rect x="452" y="159" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="471" y="175" text-anchor="middle" font-size="12" fill="var(--muted)">MEM</text>
-  <rect x="494" y="159" width="38" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="513" y="175" text-anchor="middle" font-size="12" fill="var(--muted)">WB</text>
-  <rect x="8" y="198" width="13" height="13" rx="3" fill="var(--accent)" stroke="var(--accent)"/>
-  <text x="28" y="208" fill="var(--muted)" font-size="12" font-family="var(--text)">IF = the instruction <tspan font-family="var(--mono)" fill="var(--ink)">pc</tspan> is fetching this cycle</text>
-</svg>
+<div class="dgm" id="dgm-pipe">
+  <input type="checkbox" class="dgm-toggle" id="pipe-anim-pause">
+  <div class="dgm-scroll">
+  <svg id="pipe-anim" viewBox="0 0 560 358" role="img" aria-labelledby="pipe-anim-title">
+  <title id="pipe-anim-title">An animated R3000A pipeline. One instruction enters the five stages every cycle, so from cycle five onward five instructions are in flight at once and one finishes per cycle. A timeline below records the same nine cycles.</title>
+  <style>
+  .dgm { max-width: 680px; margin: 1.9rem auto; }
+  .dgm-scroll { overflow-x: auto; }
+  .dgm-scroll svg { width: 100%; min-width: 520px; height: auto;
+    display: block; font-family: var(--mono); }
+  .dgm-toggle { position: absolute; width: 1px; height: 1px;
+    opacity: 0; pointer-events: none; }
+  .dgm-btn { display: block; width: max-content; margin: .5rem 0 0 auto;
+    padding: .35em .75em; cursor: pointer; border: 1px solid var(--line);
+    border-radius: 4px; font: 500 11px/1 var(--text);
+    letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .dgm-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .dgm-toggle:focus-visible ~ .dgm-btn { outline: 2px solid var(--accent);
+    outline-offset: 2px; }
+  .dgm-btn .dgm-resume { display: none; }
+  .dgm-toggle:checked ~ .dgm-btn .dgm-resume { display: inline; }
+  .dgm-toggle:checked ~ .dgm-btn .dgm-hold { display: none; }
+  .dgm-toggle:checked ~ .dgm-scroll svg * {
+    animation-play-state: paused !important; }
+  #pipe-anim .tok { opacity: 0;
+    animation: pipe-tok 13.8s linear infinite; }
+  #pipe-anim .tok-1 { animation-delay: 0s; }
+  #pipe-anim .tok-2 { animation-delay: 1.15s; }
+  #pipe-anim .tok-3 { animation-delay: 2.3s; }
+  #pipe-anim .tok-4 { animation-delay: 3.45s; }
+  #pipe-anim .tok-5 { animation-delay: 4.6s; }
+  #pipe-anim .cyc { fill: var(--faint);
+    animation: pipe-now 13.8s linear infinite; }
+  #pipe-anim .cyc-1 { animation-delay: 0s; }
+  #pipe-anim .cyc-2 { animation-delay: 1.15s; }
+  #pipe-anim .cyc-3 { animation-delay: 2.3s; }
+  #pipe-anim .cyc-4 { animation-delay: 3.45s; }
+  #pipe-anim .cyc-5 { animation-delay: 4.6s; }
+  #pipe-anim .cyc-6 { animation-delay: 5.75s; }
+  #pipe-anim .cyc-7 { animation-delay: 6.9s; }
+  #pipe-anim .cyc-8 { animation-delay: 8.05s; }
+  #pipe-anim .cyc-9 { animation-delay: 9.2s; }
+  #pipe-anim .cell { opacity: 0; }
+  #pipe-anim .in-0 { animation: pipe-in-0 13.8s linear infinite; }
+  #pipe-anim .in-1 { animation: pipe-in-1 13.8s linear infinite; }
+  #pipe-anim .in-2 { animation: pipe-in-2 13.8s linear infinite; }
+  #pipe-anim .in-3 { animation: pipe-in-3 13.8s linear infinite; }
+  #pipe-anim .in-4 { animation: pipe-in-4 13.8s linear infinite; }
+  #pipe-anim .in-5 { animation: pipe-in-5 13.8s linear infinite; }
+  #pipe-anim .in-6 { animation: pipe-in-6 13.8s linear infinite; }
+  #pipe-anim .in-7 { animation: pipe-in-7 13.8s linear infinite; }
+  #pipe-anim .in-8 { animation: pipe-in-8 13.8s linear infinite; }
+  #pipe-anim .chip { opacity: .14; }
+  #pipe-anim .chip-1 { animation: pipe-done-1 13.8s linear infinite; }
+  #pipe-anim .chip-2 { animation: pipe-done-2 13.8s linear infinite; }
+  #pipe-anim .chip-3 { animation: pipe-done-3 13.8s linear infinite; }
+  #pipe-anim .chip-4 { animation: pipe-done-4 13.8s linear infinite; }
+  #pipe-anim .chip-5 { animation: pipe-done-5 13.8s linear infinite; }
+  #pipe-anim .cursor { opacity: 0; animation: pipe-cursor 13.8s linear infinite; }
+  @keyframes pipe-tok {
+    0% { opacity: 0; transform: translateX(-96px) }
+    2.5% { opacity: 1; transform: translateX(0) }
+    8.3333% { transform: translateX(0) }
+    10.8333% { transform: translateX(96px) }
+    16.6667% { transform: translateX(96px) }
+    19.1667% { transform: translateX(192px) }
+    25% { transform: translateX(192px) }
+    27.5% { transform: translateX(288px) }
+    33.3333% { transform: translateX(288px) }
+    35.8333% { transform: translateX(384px) }
+    41.6667% { transform: translateX(384px) }
+    41.6667% { opacity: 1; transform: translateX(384px) }
+    44.1667% { opacity: 0; transform: translateX(424px) }
+    100% { opacity: 0; transform: translateX(424px) }
+  }
+  @keyframes pipe-now {
+    0%, 8.3333% { fill: var(--accent) }
+    10.8333%, 100% { fill: var(--faint) }
+  }
+  @keyframes pipe-in-0 {
+    0%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-in-1 {
+    0%, 8.3333% { opacity: 0 }
+    10.8333%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-in-2 {
+    0%, 16.6667% { opacity: 0 }
+    19.1667%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-in-3 {
+    0%, 25% { opacity: 0 }
+    27.5%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-in-4 {
+    0%, 33.3333% { opacity: 0 }
+    35.8333%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-in-5 {
+    0%, 41.6667% { opacity: 0 }
+    44.1667%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-in-6 {
+    0%, 50% { opacity: 0 }
+    52.5%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-in-7 {
+    0%, 58.3333% { opacity: 0 }
+    60.8333%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-in-8 {
+    0%, 66.6667% { opacity: 0 }
+    69.1667%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-done-1 {
+    0%, 41.6667% { opacity: .14 }
+    44.1667%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-done-2 {
+    0%, 50% { opacity: .14 }
+    52.5%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-done-3 {
+    0%, 58.3333% { opacity: .14 }
+    60.8333%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-done-4 {
+    0%, 66.6667% { opacity: .14 }
+    69.1667%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-done-5 {
+    0%, 75% { opacity: .14 }
+    77.5%, 100% { opacity: 1 }
+  }
+  @keyframes pipe-cursor {
+    0% { opacity: 0; transform: translateX(0) }
+    2.5% { opacity: .1 }
+    8.3333% { transform: translateX(0) }
+    10.8333% { transform: translateX(38px) }
+    16.6667% { transform: translateX(38px) }
+    19.1667% { transform: translateX(76px) }
+    25% { transform: translateX(76px) }
+    27.5% { transform: translateX(114px) }
+    33.3333% { transform: translateX(114px) }
+    35.8333% { transform: translateX(152px) }
+    41.6667% { transform: translateX(152px) }
+    44.1667% { transform: translateX(190px) }
+    50% { transform: translateX(190px) }
+    52.5% { transform: translateX(228px) }
+    58.3333% { transform: translateX(228px) }
+    60.8333% { transform: translateX(266px) }
+    66.6667% { transform: translateX(266px) }
+    69.1667% { transform: translateX(304px) }
+    75% { transform: translateX(304px) }
+    75% { opacity: .1 }
+    77.5% { opacity: 0 }
+    100% { opacity: 0; transform: translateX(304px) }
+  }
+  @media (prefers-reduced-motion: reduce), print {
+    #pipe-anim * { animation: none !important; }
+    #pipe-anim .tok { opacity: 1; }
+    #pipe-anim .tok-1 { transform: translateX(384px); }
+    #pipe-anim .tok-2 { transform: translateX(288px); }
+    #pipe-anim .tok-3 { transform: translateX(192px); }
+    #pipe-anim .tok-4 { transform: translateX(96px); }
+    #pipe-anim .tok-5 { transform: translateX(0px); }
+    #pipe-anim .cell { opacity: 1; }
+    #pipe-anim .cursor, #pipe-anim .tally { opacity: 0; }
+    #pipe-anim .cyc { fill: var(--faint); }
+    #dgm-pipe .dgm-btn { display: none; }
+  }
+  </style>
+  <text x="8" y="16" fill="var(--faint)" font-size="11.5" font-family="var(--text)">One instruction enters every cycle. By cycle 5, all five stages are busy at once.</text>
+  <rect x="45" y="34" width="86" height="52" rx="5" fill="var(--code-bg)" fill-opacity=".55" stroke="var(--line)"/>
+  <text x="88" y="49" text-anchor="middle" font-size="10" letter-spacing=".1em" fill="var(--faint)">IF</text>
+  <rect x="141" y="34" width="86" height="52" rx="5" fill="var(--code-bg)" fill-opacity=".55" stroke="var(--line)"/>
+  <text x="184" y="49" text-anchor="middle" font-size="10" letter-spacing=".1em" fill="var(--faint)">RD</text>
+  <rect x="237" y="34" width="86" height="52" rx="5" fill="var(--code-bg)" fill-opacity=".55" stroke="var(--line)"/>
+  <text x="280" y="49" text-anchor="middle" font-size="10" letter-spacing=".1em" fill="var(--faint)">ALU</text>
+  <rect x="333" y="34" width="86" height="52" rx="5" fill="var(--code-bg)" fill-opacity=".55" stroke="var(--line)"/>
+  <text x="376" y="49" text-anchor="middle" font-size="10" letter-spacing=".1em" fill="var(--faint)">MEM</text>
+  <rect x="429" y="34" width="86" height="52" rx="5" fill="var(--code-bg)" fill-opacity=".55" stroke="var(--line)"/>
+  <text x="472" y="49" text-anchor="middle" font-size="10" letter-spacing=".1em" fill="var(--faint)">WB</text>
+  <text x="34" y="75" text-anchor="middle" font-size="13" fill="var(--faint)">&#8594;</text>
+  <g class="tok tok-1">
+    <rect x="51" y="60" width="74" height="22" rx="4" fill="var(--syn-builtin)" fill-opacity=".18" stroke="var(--syn-builtin)" stroke-opacity=".55"/>
+    <text x="88" y="75" text-anchor="middle" font-size="11.5" fill="var(--ink)" font-weight="500">lw</text>
+  </g>
+  <g class="tok tok-2">
+    <rect x="51" y="60" width="74" height="22" rx="4" fill="var(--syn-str)" fill-opacity=".18" stroke="var(--syn-str)" stroke-opacity=".55"/>
+    <text x="88" y="75" text-anchor="middle" font-size="11.5" fill="var(--ink)" font-weight="500">addiu</text>
+  </g>
+  <g class="tok tok-3">
+    <rect x="51" y="60" width="74" height="22" rx="4" fill="var(--syn-fn)" fill-opacity=".18" stroke="var(--syn-fn)" stroke-opacity=".55"/>
+    <text x="88" y="75" text-anchor="middle" font-size="11.5" fill="var(--ink)" font-weight="500">addu</text>
+  </g>
+  <g class="tok tok-4">
+    <rect x="51" y="60" width="74" height="22" rx="4" fill="var(--syn-num)" fill-opacity=".18" stroke="var(--syn-num)" stroke-opacity=".55"/>
+    <text x="88" y="75" text-anchor="middle" font-size="11.5" fill="var(--ink)" font-weight="500">sll</text>
+  </g>
+  <g class="tok tok-5">
+    <rect x="51" y="60" width="74" height="22" rx="4" fill="var(--syn-cls)" fill-opacity=".18" stroke="var(--syn-cls)" stroke-opacity=".55"/>
+    <text x="88" y="75" text-anchor="middle" font-size="11.5" fill="var(--ink)" font-weight="500">or</text>
+  </g>
+  <g class="tally">
+    <text x="417" y="112" text-anchor="end" fill="var(--faint)" font-size="11.5" font-family="var(--text)">completed</text>
+    <rect class="chip chip-1" x="425" y="101" width="14" height="14" rx="3" fill="var(--syn-builtin)"/>
+    <rect class="chip chip-2" x="444" y="101" width="14" height="14" rx="3" fill="var(--syn-str)"/>
+    <rect class="chip chip-3" x="463" y="101" width="14" height="14" rx="3" fill="var(--syn-fn)"/>
+    <rect class="chip chip-4" x="482" y="101" width="14" height="14" rx="3" fill="var(--syn-num)"/>
+    <rect class="chip chip-5" x="501" y="101" width="14" height="14" rx="3" fill="var(--syn-cls)"/>
+  </g>
+  <text x="8" y="148" fill="var(--faint)" font-size="11.5" font-family="var(--text)">The same nine cycles, as a timeline.</text>
+  <rect class="cursor" x="172" y="164" width="34" height="162" rx="3" fill="var(--accent)"/>
+  <text x="148" y="176" text-anchor="end" fill="var(--faint)" font-size="11.5" font-family="var(--text)">cycle</text>
+  <text class="cyc cyc-1" x="189" y="176" text-anchor="middle" font-size="11.5">1</text>
+  <text class="cyc cyc-2" x="227" y="176" text-anchor="middle" font-size="11.5">2</text>
+  <text class="cyc cyc-3" x="265" y="176" text-anchor="middle" font-size="11.5">3</text>
+  <text class="cyc cyc-4" x="303" y="176" text-anchor="middle" font-size="11.5">4</text>
+  <text class="cyc cyc-5" x="341" y="176" text-anchor="middle" font-size="11.5">5</text>
+  <text class="cyc cyc-6" x="379" y="176" text-anchor="middle" font-size="11.5">6</text>
+  <text class="cyc cyc-7" x="417" y="176" text-anchor="middle" font-size="11.5">7</text>
+  <text class="cyc cyc-8" x="455" y="176" text-anchor="middle" font-size="11.5">8</text>
+  <text class="cyc cyc-9" x="493" y="176" text-anchor="middle" font-size="11.5">9</text>
+  <rect x="8" y="187" width="3" height="14" rx="1.5" fill="var(--syn-builtin)"/>
+  <text x="17" y="198.5" font-size="11.5" fill="var(--ink)">lw</text>
+  <text x="58" y="198.5" font-size="11.5" fill="var(--muted)">$t0, 0($a0)</text>
+  <g class="cell in-0">
+    <rect x="172" y="182" width="34" height="24" rx="3" fill="var(--syn-builtin)" fill-opacity=".3" stroke="var(--syn-builtin)" stroke-width="1.4"/>
+    <text x="189" y="198.5" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-weight="600">IF</text>
+  </g>
+  <g class="cell in-1">
+    <rect x="210" y="182" width="34" height="24" rx="3" fill="var(--syn-builtin)" fill-opacity=".1" stroke="var(--syn-builtin)" stroke-opacity=".32"/>
+    <text x="227" y="198.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">RD</text>
+  </g>
+  <g class="cell in-2">
+    <rect x="248" y="182" width="34" height="24" rx="3" fill="var(--syn-builtin)" fill-opacity=".1" stroke="var(--syn-builtin)" stroke-opacity=".32"/>
+    <text x="265" y="198.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">ALU</text>
+  </g>
+  <g class="cell in-3">
+    <rect x="286" y="182" width="34" height="24" rx="3" fill="var(--syn-builtin)" fill-opacity=".1" stroke="var(--syn-builtin)" stroke-opacity=".32"/>
+    <text x="303" y="198.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">MEM</text>
+  </g>
+  <g class="cell in-4">
+    <rect x="324" y="182" width="34" height="24" rx="3" fill="var(--syn-builtin)" fill-opacity=".1" stroke="var(--syn-builtin)" stroke-opacity=".32"/>
+    <text x="341" y="198.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">WB</text>
+  </g>
+  <rect x="8" y="217" width="3" height="14" rx="1.5" fill="var(--syn-str)"/>
+  <text x="17" y="228.5" font-size="11.5" fill="var(--ink)">addiu</text>
+  <text x="58" y="228.5" font-size="11.5" fill="var(--muted)">$a0, $a0, 4</text>
+  <g class="cell in-1">
+    <rect x="210" y="212" width="34" height="24" rx="3" fill="var(--syn-str)" fill-opacity=".3" stroke="var(--syn-str)" stroke-width="1.4"/>
+    <text x="227" y="228.5" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-weight="600">IF</text>
+  </g>
+  <g class="cell in-2">
+    <rect x="248" y="212" width="34" height="24" rx="3" fill="var(--syn-str)" fill-opacity=".1" stroke="var(--syn-str)" stroke-opacity=".32"/>
+    <text x="265" y="228.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">RD</text>
+  </g>
+  <g class="cell in-3">
+    <rect x="286" y="212" width="34" height="24" rx="3" fill="var(--syn-str)" fill-opacity=".1" stroke="var(--syn-str)" stroke-opacity=".32"/>
+    <text x="303" y="228.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">ALU</text>
+  </g>
+  <g class="cell in-4">
+    <rect x="324" y="212" width="34" height="24" rx="3" fill="var(--syn-str)" fill-opacity=".1" stroke="var(--syn-str)" stroke-opacity=".32"/>
+    <text x="341" y="228.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">MEM</text>
+  </g>
+  <g class="cell in-5">
+    <rect x="362" y="212" width="34" height="24" rx="3" fill="var(--syn-str)" fill-opacity=".1" stroke="var(--syn-str)" stroke-opacity=".32"/>
+    <text x="379" y="228.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">WB</text>
+  </g>
+  <rect x="8" y="247" width="3" height="14" rx="1.5" fill="var(--syn-fn)"/>
+  <text x="17" y="258.5" font-size="11.5" fill="var(--ink)">addu</text>
+  <text x="58" y="258.5" font-size="11.5" fill="var(--muted)">$t1, $t1, $t2</text>
+  <g class="cell in-2">
+    <rect x="248" y="242" width="34" height="24" rx="3" fill="var(--syn-fn)" fill-opacity=".3" stroke="var(--syn-fn)" stroke-width="1.4"/>
+    <text x="265" y="258.5" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-weight="600">IF</text>
+  </g>
+  <g class="cell in-3">
+    <rect x="286" y="242" width="34" height="24" rx="3" fill="var(--syn-fn)" fill-opacity=".1" stroke="var(--syn-fn)" stroke-opacity=".32"/>
+    <text x="303" y="258.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">RD</text>
+  </g>
+  <g class="cell in-4">
+    <rect x="324" y="242" width="34" height="24" rx="3" fill="var(--syn-fn)" fill-opacity=".1" stroke="var(--syn-fn)" stroke-opacity=".32"/>
+    <text x="341" y="258.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">ALU</text>
+  </g>
+  <g class="cell in-5">
+    <rect x="362" y="242" width="34" height="24" rx="3" fill="var(--syn-fn)" fill-opacity=".1" stroke="var(--syn-fn)" stroke-opacity=".32"/>
+    <text x="379" y="258.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">MEM</text>
+  </g>
+  <g class="cell in-6">
+    <rect x="400" y="242" width="34" height="24" rx="3" fill="var(--syn-fn)" fill-opacity=".1" stroke="var(--syn-fn)" stroke-opacity=".32"/>
+    <text x="417" y="258.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">WB</text>
+  </g>
+  <rect x="8" y="277" width="3" height="14" rx="1.5" fill="var(--syn-num)"/>
+  <text x="17" y="288.5" font-size="11.5" fill="var(--ink)">sll</text>
+  <text x="58" y="288.5" font-size="11.5" fill="var(--muted)">$t3, $t3, 2</text>
+  <g class="cell in-3">
+    <rect x="286" y="272" width="34" height="24" rx="3" fill="var(--syn-num)" fill-opacity=".3" stroke="var(--syn-num)" stroke-width="1.4"/>
+    <text x="303" y="288.5" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-weight="600">IF</text>
+  </g>
+  <g class="cell in-4">
+    <rect x="324" y="272" width="34" height="24" rx="3" fill="var(--syn-num)" fill-opacity=".1" stroke="var(--syn-num)" stroke-opacity=".32"/>
+    <text x="341" y="288.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">RD</text>
+  </g>
+  <g class="cell in-5">
+    <rect x="362" y="272" width="34" height="24" rx="3" fill="var(--syn-num)" fill-opacity=".1" stroke="var(--syn-num)" stroke-opacity=".32"/>
+    <text x="379" y="288.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">ALU</text>
+  </g>
+  <g class="cell in-6">
+    <rect x="400" y="272" width="34" height="24" rx="3" fill="var(--syn-num)" fill-opacity=".1" stroke="var(--syn-num)" stroke-opacity=".32"/>
+    <text x="417" y="288.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">MEM</text>
+  </g>
+  <g class="cell in-7">
+    <rect x="438" y="272" width="34" height="24" rx="3" fill="var(--syn-num)" fill-opacity=".1" stroke="var(--syn-num)" stroke-opacity=".32"/>
+    <text x="455" y="288.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">WB</text>
+  </g>
+  <rect x="8" y="307" width="3" height="14" rx="1.5" fill="var(--syn-cls)"/>
+  <text x="17" y="318.5" font-size="11.5" fill="var(--ink)">or</text>
+  <text x="58" y="318.5" font-size="11.5" fill="var(--muted)">$t4, $t5, $t6</text>
+  <g class="cell in-4">
+    <rect x="324" y="302" width="34" height="24" rx="3" fill="var(--syn-cls)" fill-opacity=".3" stroke="var(--syn-cls)" stroke-width="1.4"/>
+    <text x="341" y="318.5" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-weight="600">IF</text>
+  </g>
+  <g class="cell in-5">
+    <rect x="362" y="302" width="34" height="24" rx="3" fill="var(--syn-cls)" fill-opacity=".1" stroke="var(--syn-cls)" stroke-opacity=".32"/>
+    <text x="379" y="318.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">RD</text>
+  </g>
+  <g class="cell in-6">
+    <rect x="400" y="302" width="34" height="24" rx="3" fill="var(--syn-cls)" fill-opacity=".1" stroke="var(--syn-cls)" stroke-opacity=".32"/>
+    <text x="417" y="318.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">ALU</text>
+  </g>
+  <g class="cell in-7">
+    <rect x="438" y="302" width="34" height="24" rx="3" fill="var(--syn-cls)" fill-opacity=".1" stroke="var(--syn-cls)" stroke-opacity=".32"/>
+    <text x="455" y="318.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">MEM</text>
+  </g>
+  <g class="cell in-8">
+    <rect x="476" y="302" width="34" height="24" rx="3" fill="var(--syn-cls)" fill-opacity=".1" stroke="var(--syn-cls)" stroke-opacity=".32"/>
+    <text x="493" y="318.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">WB</text>
+  </g>
+  <rect x="8" y="336" width="24" height="15" rx="3" fill="var(--syn-builtin)" fill-opacity=".3" stroke="var(--syn-builtin)" stroke-width="1.4"/>
+  <text x="20" y="347" text-anchor="middle" font-size="9.5" fill="var(--ink)" font-weight="600">IF</text>
+  <text x="40" y="347" fill="var(--muted)" font-size="11.5" font-family="var(--text)">The diagonal of IF cells is <tspan font-family="var(--mono)" fill="var(--ink)">pc</tspan>, fetching a new instruction every cycle.</text>
+  </svg>
+  </div>
+  <label class="dgm-btn" for="pipe-anim-pause"><span class="dgm-hold">Pause</span><span class="dgm-resume">Play</span></label>
+</div>

@@ -1,37 +1,184 @@
-<svg viewBox="0 0 432 186" role="img" aria-labelledby="load-title" style="width:100%;max-width:620px;height:auto;display:block;margin:1.5rem auto;font-family:var(--mono)">
-  <title id="load-title">A load delivers its value in cycle 4, but the instruction behind it reads its registers in cycle 3, one cycle earlier</title>
-  <text x="8" y="32" fill="var(--faint)" font-size="11.5" font-family="var(--text)">cycle</text>
-  <text x="189" y="32" text-anchor="middle" fill="var(--faint)" font-size="12">1</text>
-  <text x="231" y="32" text-anchor="middle" fill="var(--faint)" font-size="12">2</text>
-  <text x="273" y="32" text-anchor="middle" fill="var(--faint)" font-size="12">3</text>
-  <text x="315" y="32" text-anchor="middle" fill="var(--faint)" font-size="12">4</text>
-  <text x="357" y="32" text-anchor="middle" fill="var(--faint)" font-size="12">5</text>
-  <text x="399" y="32" text-anchor="middle" fill="var(--faint)" font-size="12">6</text>
-  <text x="8" y="62" fill="var(--ink)" font-size="12">lw    $t0, 0($a0)</text>
-  <rect x="170" y="44" width="38" height="26" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="189" y="62" text-anchor="middle" font-size="12" fill="var(--muted)">IF</text>
-  <rect x="212" y="44" width="38" height="26" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="231" y="62" text-anchor="middle" font-size="12" fill="var(--muted)">RD</text>
-  <rect x="254" y="44" width="38" height="26" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="273" y="62" text-anchor="middle" font-size="12" fill="var(--muted)">ALU</text>
-  <rect x="296" y="44" width="38" height="26" rx="3" fill="var(--accent)" stroke="var(--accent)"/>
-  <text x="315" y="62" text-anchor="middle" font-size="12" fill="var(--bg)" font-weight="600">MEM</text>
-  <rect x="338" y="44" width="38" height="26" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="357" y="62" text-anchor="middle" font-size="12" fill="var(--muted)">WB</text>
-  <text x="8" y="102" fill="var(--ink)" font-size="12">addu  $t1, $t0, $t2</text>
-  <rect x="212" y="84" width="38" height="26" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="231" y="102" text-anchor="middle" font-size="12" fill="var(--muted)">IF</text>
-  <rect x="254" y="84" width="38" height="26" rx="3" fill="var(--accent)" stroke="var(--accent)"/>
-  <text x="273" y="102" text-anchor="middle" font-size="12" fill="var(--bg)" font-weight="600">RD</text>
-  <rect x="296" y="84" width="38" height="26" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="315" y="102" text-anchor="middle" font-size="12" fill="var(--muted)">ALU</text>
-  <rect x="338" y="84" width="38" height="26" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="357" y="102" text-anchor="middle" font-size="12" fill="var(--muted)">MEM</text>
-  <rect x="380" y="84" width="38" height="26" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
-  <text x="399" y="102" text-anchor="middle" font-size="12" fill="var(--muted)">WB</text>
-  <line x1="329" y1="18" x2="329" y2="44" stroke="var(--accent)" stroke-width="1.2"/>
-  <text x="315" y="13" text-anchor="middle" fill="var(--accent)" font-size="11.5" font-family="var(--text)">$t0 arrives from memory here</text>
-  <line x1="273" y1="110" x2="273" y2="126" stroke="var(--accent)" stroke-width="1.2"/>
-  <text x="273" y="140" text-anchor="middle" fill="var(--accent)" font-size="11.5" font-family="var(--text)">but $t0 is read here, a cycle earlier</text>
-  <text x="8" y="174" fill="var(--muted)" font-size="12.5" font-family="var(--text)">The value is needed one cycle before it exists.</text>
-</svg>
+<div class="dgm" id="dgm-load">
+  <input type="checkbox" class="dgm-toggle" id="load-anim-pause">
+  <div class="dgm-scroll">
+  <svg id="load-anim" viewBox="0 0 560 234" role="img" aria-labelledby="load-anim-title">
+  <title id="load-anim-title">An animated load delay hazard. The load reaches memory in cycle four, but the instruction behind it reads its registers in cycle three, so it adds the stale value of $t0 and produces 1 instead of 43.</title>
+  <style>
+  .dgm { max-width: 680px; margin: 1.9rem auto; }
+  .dgm-scroll { overflow-x: auto; }
+  .dgm-scroll svg { width: 100%; min-width: 520px; height: auto;
+    display: block; font-family: var(--mono); }
+  .dgm-toggle { position: absolute; width: 1px; height: 1px;
+    opacity: 0; pointer-events: none; }
+  .dgm-btn { display: block; width: max-content; margin: .5rem 0 0 auto;
+    padding: .35em .75em; cursor: pointer; border: 1px solid var(--line);
+    border-radius: 4px; font: 500 11px/1 var(--text);
+    letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .dgm-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .dgm-toggle:focus-visible ~ .dgm-btn { outline: 2px solid var(--accent);
+    outline-offset: 2px; }
+  .dgm-btn .dgm-resume { display: none; }
+  .dgm-toggle:checked ~ .dgm-btn .dgm-resume { display: inline; }
+  .dgm-toggle:checked ~ .dgm-btn .dgm-hold { display: none; }
+  .dgm-toggle:checked ~ .dgm-scroll svg * {
+    animation-play-state: paused !important; }
+  #load-anim .cyc { fill: var(--faint);
+    animation: load-now 10.35s linear infinite; }
+  #load-anim .cyc-1 { animation-delay: 0s; }
+  #load-anim .cyc-2 { animation-delay: 1.15s; }
+  #load-anim .cyc-3 { animation-delay: 2.3s; }
+  #load-anim .cyc-4 { animation-delay: 3.45s; }
+  #load-anim .cyc-5 { animation-delay: 4.6s; }
+  #load-anim .cyc-6 { animation-delay: 5.75s; }
+  #load-anim .cell { opacity: 0; }
+  #load-anim .in-0 { animation: load-in-0 10.35s linear infinite; }
+  #load-anim .in-1 { animation: load-in-1 10.35s linear infinite; }
+  #load-anim .in-2 { animation: load-in-2 10.35s linear infinite; }
+  #load-anim .in-3 { animation: load-in-3 10.35s linear infinite; }
+  #load-anim .in-4 { animation: load-in-4 10.35s linear infinite; }
+  #load-anim .in-5 { animation: load-in-5 10.35s linear infinite; }
+  #load-anim .cursor { opacity: 0; animation: load-cursor 10.35s linear infinite; }
+  @keyframes load-now {
+    0%, 11.1111% { fill: var(--accent) }
+    13.6111%, 100% { fill: var(--faint) }
+  }
+  @keyframes load-in-0 {
+    0%, 100% { opacity: 1 }
+  }
+  @keyframes load-in-1 {
+    0%, 11.1111% { opacity: 0 }
+    13.6111%, 100% { opacity: 1 }
+  }
+  @keyframes load-in-2 {
+    0%, 22.2222% { opacity: 0 }
+    24.7222%, 100% { opacity: 1 }
+  }
+  @keyframes load-in-3 {
+    0%, 33.3333% { opacity: 0 }
+    35.8333%, 100% { opacity: 1 }
+  }
+  @keyframes load-in-4 {
+    0%, 44.4444% { opacity: 0 }
+    46.9444%, 100% { opacity: 1 }
+  }
+  @keyframes load-in-5 {
+    0%, 55.5556% { opacity: 0 }
+    58.0556%, 100% { opacity: 1 }
+  }
+  @keyframes load-cursor {
+    0% { opacity: 0; transform: translateX(0) }
+    2.5% { opacity: .1 }
+    11.1111% { transform: translateX(0) }
+    13.6111% { transform: translateX(38px) }
+    22.2222% { transform: translateX(38px) }
+    24.7222% { transform: translateX(76px) }
+    33.3333% { transform: translateX(76px) }
+    35.8333% { transform: translateX(114px) }
+    44.4444% { transform: translateX(114px) }
+    46.9444% { transform: translateX(152px) }
+    55.5556% { transform: translateX(152px) }
+    58.0556% { transform: translateX(190px) }
+    66.6667% { transform: translateX(190px) }
+    66.6667% { opacity: .1 }
+    69.1667% { opacity: 0 }
+    100% { opacity: 0; transform: translateX(190px) }
+  }
+  @media (prefers-reduced-motion: reduce), print {
+    #load-anim * { animation: none !important; }
+    #load-anim .cell { opacity: 1; }
+    #load-anim .cursor { opacity: 0; }
+    #load-anim .cyc { fill: var(--faint); }
+    #dgm-load .dgm-btn { display: none; }
+  }
+  </style>
+  <text x="8" y="16" fill="var(--faint)" font-size="11.5" font-family="var(--text)">Memory at <tspan font-family="var(--mono)">0($a0)</tspan> holds 42, <tspan font-family="var(--mono)">$t2</tspan> is 1, and <tspan font-family="var(--mono)">$t0</tspan> starts at 0.</text>
+  <rect class="cursor" x="172" y="30" width="34" height="112" rx="3" fill="var(--accent)"/>
+  <text x="148" y="42" text-anchor="end" fill="var(--faint)" font-size="11.5" font-family="var(--text)">cycle</text>
+  <text class="cyc cyc-1" x="189" y="42" text-anchor="middle" font-size="11.5">1</text>
+  <text class="cyc cyc-2" x="227" y="42" text-anchor="middle" font-size="11.5">2</text>
+  <text class="cyc cyc-3" x="265" y="42" text-anchor="middle" font-size="11.5">3</text>
+  <text class="cyc cyc-4" x="303" y="42" text-anchor="middle" font-size="11.5">4</text>
+  <text class="cyc cyc-5" x="341" y="42" text-anchor="middle" font-size="11.5">5</text>
+  <text class="cyc cyc-6" x="379" y="42" text-anchor="middle" font-size="11.5">6</text>
+  <rect x="8" y="53" width="3" height="14" rx="1.5" fill="var(--syn-builtin)"/>
+  <text x="17" y="64.5" font-size="11.5" fill="var(--ink)">lw</text>
+  <text x="58" y="64.5" font-size="11.5" fill="var(--muted)">$t0, 0($a0)</text>
+  <g class="cell in-0">
+    <rect x="172" y="48" width="34" height="24" rx="3" fill="var(--syn-builtin)" fill-opacity=".1" stroke="var(--syn-builtin)" stroke-opacity=".32"/>
+    <text x="189" y="64.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">IF</text>
+  </g>
+  <g class="cell in-1">
+    <rect x="210" y="48" width="34" height="24" rx="3" fill="var(--syn-builtin)" fill-opacity=".1" stroke="var(--syn-builtin)" stroke-opacity=".32"/>
+    <text x="227" y="64.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">RD</text>
+  </g>
+  <g class="cell in-2">
+    <rect x="248" y="48" width="34" height="24" rx="3" fill="var(--syn-builtin)" fill-opacity=".1" stroke="var(--syn-builtin)" stroke-opacity=".32"/>
+    <text x="265" y="64.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">ALU</text>
+  </g>
+  <g class="cell in-3">
+    <rect x="286" y="48" width="34" height="24" rx="3" fill="var(--syn-builtin)" fill-opacity=".3" stroke="var(--syn-builtin)" stroke-width="1.4"/>
+    <text x="303" y="64.5" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-weight="600">MEM</text>
+  </g>
+  <g class="cell in-4">
+    <rect x="324" y="48" width="34" height="24" rx="3" fill="var(--syn-builtin)" fill-opacity=".1" stroke="var(--syn-builtin)" stroke-opacity=".32"/>
+    <text x="341" y="64.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">WB</text>
+  </g>
+  <rect x="8" y="83" width="3" height="14" rx="1.5" fill="var(--syn-fn)"/>
+  <text x="17" y="94.5" font-size="11.5" fill="var(--ink)">addu</text>
+  <text x="58" y="94.5" font-size="11.5" fill="var(--muted)">$t1, $t0, $t2</text>
+  <g class="cell in-1">
+    <rect x="210" y="78" width="34" height="24" rx="3" fill="var(--syn-fn)" fill-opacity=".1" stroke="var(--syn-fn)" stroke-opacity=".32"/>
+    <text x="227" y="94.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">IF</text>
+  </g>
+  <g class="cell in-2">
+    <rect x="248" y="78" width="34" height="24" rx="3" fill="var(--accent)" fill-opacity=".22" stroke="var(--accent)" stroke-width="1.6"/>
+    <text x="265" y="94.5" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-weight="600">RD</text>
+  </g>
+  <g class="cell in-3">
+    <rect x="286" y="78" width="34" height="24" rx="3" fill="var(--syn-fn)" fill-opacity=".1" stroke="var(--syn-fn)" stroke-opacity=".32"/>
+    <text x="303" y="94.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">ALU</text>
+  </g>
+  <g class="cell in-4">
+    <rect x="324" y="78" width="34" height="24" rx="3" fill="var(--syn-fn)" fill-opacity=".1" stroke="var(--syn-fn)" stroke-opacity=".32"/>
+    <text x="341" y="94.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">MEM</text>
+  </g>
+  <g class="cell in-5">
+    <rect x="362" y="78" width="34" height="24" rx="3" fill="var(--syn-fn)" fill-opacity=".1" stroke="var(--syn-fn)" stroke-opacity=".32"/>
+    <text x="379" y="94.5" text-anchor="middle" font-size="10.5" fill="var(--muted)">WB</text>
+  </g>
+  <text x="148" y="134.5" text-anchor="end" fill="var(--muted)" font-size="11.5">$t0 holds</text>
+  <g class="cell in-0">
+    <rect x="172" y="118" width="34" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
+    <text x="189" y="134.5" text-anchor="middle" font-size="11" fill="var(--muted)">0</text>
+  </g>
+  <g class="cell in-1">
+    <rect x="210" y="118" width="34" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
+    <text x="227" y="134.5" text-anchor="middle" font-size="11" fill="var(--muted)">0</text>
+  </g>
+  <g class="cell in-2">
+    <rect x="248" y="118" width="34" height="24" rx="3" fill="var(--accent)" fill-opacity=".1" stroke="var(--accent)" stroke-width="1.6"/>
+    <text x="265" y="134.5" text-anchor="middle" font-size="11" fill="var(--accent)" font-weight="600">0</text>
+  </g>
+  <g class="cell in-3">
+    <rect x="286" y="118" width="34" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
+    <text x="303" y="134.5" text-anchor="middle" font-size="11" fill="var(--muted)">42</text>
+  </g>
+  <g class="cell in-4">
+    <rect x="324" y="118" width="34" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
+    <text x="341" y="134.5" text-anchor="middle" font-size="11" fill="var(--muted)">42</text>
+  </g>
+  <g class="cell in-5">
+    <rect x="362" y="118" width="34" height="24" rx="3" fill="var(--code-bg)" stroke="var(--line)"/>
+    <text x="379" y="134.5" text-anchor="middle" font-size="11" fill="var(--muted)">42</text>
+  </g>
+  <rect x="8" y="156" width="16" height="16" rx="3" fill="var(--accent)" fill-opacity=".22" stroke="var(--accent)" stroke-width="1.4"/>
+  <text x="16" y="168" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-weight="600">3</text>
+  <text x="34" y="168" fill="var(--muted)" font-size="11.5" font-family="var(--text)"><tspan font-family="var(--mono)" fill="var(--ink)">addu</tspan> reads <tspan font-family="var(--mono)" fill="var(--ink)">$t0</tspan> in RD &#8212; the load is still in ALU, so it gets the old 0.</text>
+  <rect x="8" y="178" width="16" height="16" rx="3" fill="var(--syn-builtin)" fill-opacity=".22" stroke="var(--syn-builtin)" stroke-width="1.4"/>
+  <text x="16" y="190" text-anchor="middle" font-size="10.5" fill="var(--ink)" font-weight="600">4</text>
+  <text x="34" y="190" fill="var(--muted)" font-size="11.5" font-family="var(--text)">The loaded 42 reaches <tspan font-family="var(--mono)" fill="var(--ink)">$t0</tspan> in MEM &#8212; one cycle after it was needed.</text>
+  <text x="8" y="222" fill="var(--ink)" font-size="12.5" font-family="var(--text)">So <tspan font-family="var(--mono)">$t1</tspan> ends up 0 + 1 = 1, where it should have been 42 + 1 = 43.</text>
+  </svg>
+  </div>
+  <label class="dgm-btn" for="load-anim-pause"><span class="dgm-hold">Pause</span><span class="dgm-resume">Play</span></label>
+</div>

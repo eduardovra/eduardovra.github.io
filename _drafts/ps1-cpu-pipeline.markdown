@@ -79,7 +79,7 @@ This sounds like a pure win, right? Now let's see where it falls apart.
 
 All of this only holds up while each instruction is independent of the ones around it. In practice, instructions usually aren't.
 
-Take a look at the shaded IF cells in the diagram again (the instruction fetches). That diagonal is `pc` moving on to the next instruction every cycle, no matter what the instructions themselves are doing. There are two cases where this goes wrong.
+Take a look at the highlighted IF cells in the diagram again (the instruction fetches). That diagonal is `pc` moving on to the next instruction every cycle, no matter what the instructions themselves are doing. There are two cases where this goes wrong.
 
 **A branch.** Suppose the first instruction is a branch. Its whole job is to decide what `pc` should be next, but the second instruction is fetched in cycle 2, while the branch is still in its second stage. In other words, `pc` runs one instruction ahead of the instruction that is supposed to change it.
 
