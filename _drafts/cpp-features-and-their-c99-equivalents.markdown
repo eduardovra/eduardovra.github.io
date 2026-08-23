@@ -355,11 +355,18 @@ static_assert(ram_size % 4096 == 0, "RAM must be a whole number of pages");
 uint32_t hz(void) { return cpu_clock_hz + ram[0]; }
 ```
 
-This is the one place in the whole list where C caught up completely. A
-`constexpr` object is typed, scoped, visible to the debugger, and a
-constant expression — all four at once, which none of the three C99
-tools manages. Objects only, though: see the next section for what it
-still cannot do.
+On paper this is the one place in the whole list where C caught up
+completely. A `constexpr` object is typed, scoped, visible to the
+debugger, and a constant expression — all four at once, which none of the
+three C99 tools manages. Objects only, though: see the next section for
+what it still cannot do.
+
+The catch is availability, and it is the whole of Eskil Steenberg's
+argument arriving as a fact about my own machine: **clang 18 rejects
+`constexpr` in every C mode** (`unknown type name 'constexpr'`), and gcc
+13.3 does not accept `-std=c23` at all, only `-std=c2x`. Those are the two
+compilers Ubuntu 24.04 ships. So the feature I want to call C's clean win
+does not exist on half the toolchains on this laptop.
 
 **What the compiler does for you.** It checks at the point of
 declaration that the value really is computable at compile time, and then

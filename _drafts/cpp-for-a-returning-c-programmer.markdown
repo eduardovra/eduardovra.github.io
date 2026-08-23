@@ -35,11 +35,15 @@ where the cost question is real rather than academic:
 these features I actually leaned on and where. The examples should come
 from my code, not from a list of language features.
 
-**Companion draft:** `cpp-features-and-their-c99-equivalents` holds the
+**Companion drafts.** `cpp-features-and-their-c99-equivalents` holds the
 feature-by-feature reference — 36 features, each with the C++ code, the
-C99 equivalent, and a measured cost. Everything there was compiled and
-measured on gcc 13.3.0; where it contradicts a number in this file, that
-one wins.
+C99 equivalent, a C23 block where modern C changes the answer, and a
+measured cost. `who-says-to-write-less-cpp` holds the sources behind
+section 8: Orthodox C++ checked claim by claim, Eskil Steenberg's
+Dependable C, Muratori's two talks, and the other side argued at its
+strongest. Both were compiled and measured or read against primary
+sources on gcc 13.3.0 / clang 18; where either contradicts a number in
+this file, that one wins.
 
 **This is probably more than one post.** Candidates that stand alone:
 `How C++ exceptions actually work, in C` (section 6 — clearest payoff),
@@ -294,6 +298,18 @@ exceptions for over a decade. LLVM disables exceptions and RTTI entirely.
 Game engines and embedded shops ban both plus `iostream` and heap-happy
 containers.
 
+> Checked, and the two most-cited style guides disagree with each other,
+> which is worth knowing before citing either. LLVM's is build-enforced —
+> `LLVM_ENABLE_EH` and `LLVM_ENABLE_RTTI` both default to OFF — and rests
+> on a live zero-overhead argument. Google's is 18+ years old and says in
+> writing that it is *not* a technical verdict: "Our advice against using
+> exceptions is not predicated on philosophical or moral grounds, but
+> practical ones… Things would probably be different if we had to do it
+> all over again from scratch." Google has also softened on RTTI since
+> 2008 ("Avoid using RTTI", free in unit tests) and explicitly forbids
+> LLVM's replacement: "Do not hand-implement an RTTI-like workaround." So
+> citing Google against exceptions cites a source that disagrees with you.
+
 | Usually kept | Usually dropped |
 |---|---|
 | RAII / destructors | Exceptions |
@@ -349,8 +365,15 @@ Complaints that don't hold up as well:
   `end()` is not.
 - **"You lose control over errors."** You lose it *differently*. Ignoring
   an error requires effort with exceptions and requires nothing with
-  return codes — most real-world C security bugs are unchecked returns.
-  `[[nodiscard]]` closes some of the gap.
+  return codes. `[[nodiscard]]` closes some of the gap.
+
+  > I had written "most real-world C security bugs are unchecked returns"
+  > here, and I cannot source it — CWE-252 and CWE-391 do not appear
+  > anywhere in the 2024 CWE Top 25. The sourceable version is narrower
+  > and still says something: EIO (FAST'08) found 1153 of 9022
+  > error-propagating calls in Linux 2.6 filesystems — 13% — drop the
+  > code, and the authors write that "many violations are not corner-case
+  > mistakes… we suspect the omissions are intentional."
 
 The structural problem: banning exceptions doesn't give you C's model
 back, it gives you a C++ with a hole in it. Constructors have no return
@@ -605,9 +628,17 @@ Also: at file scope, `const` variables have internal linkage in C++
 > This is the section that got me interested in the first place, because
 > it's about *choosing* a subset, which is the situation I'm actually in.
 
-Orthodox C++ is **Branimir Karadžić's** (bgfx author), originally a gist,
-still maintained. Acton and Muratori are adjacent in sentiment but not the
-source.
+Orthodox C++ is **Branimir Karadžić's** (bgfx author), created as a gist
+on 2016-01-16 and still edited — the last substantive change, a section
+against modules, is from 2025-10-19. The gist is now a four-line stub
+pointing at `bkaradzic.github.io/posts/orthodoxc++/`, so link the post.
+
+Acton and Muratori are adjacent in sentiment but not the source, and this
+is firmer than I assumed: neither name appears in the post, including in
+its own list of similar ideas. Their positions also differ from it and
+from each other — Acton bans templates and operator overloading outright
+(CppCon 2014), Orthodox C++ permits templates in moderation, and Muratori
+keeps operator overloading deliberately.
 
 ### What RTTI actually is
 
@@ -629,10 +660,21 @@ inheritance graph.
   polymorphic class. Deep template hierarchies produce enormous name
   strings. `-fno-rtti` deletes all of it. Part of why it's banned in LLVM.
 - **`dynamic_cast` is genuinely slow and unbounded.** No O(1) guarantee.
-  For multiple/virtual inheritance the implementation walks the hierarchy,
-  and the Itanium ABI compares type *names by string* to stay correct
-  across shared library boundaries. Hundreds of cycles. Unusable in a hot
-  loop.
+  Measured: about 3x a virtual call (~70–90 cycles) for a cast inside one
+  binary, and ~13x a tag compare, since it is an out-of-line
+  `call __dynamic_cast` that cannot inline. "Hundreds of cycles" belongs
+  to the cross-shared-library case, not to every cast.
+
+  > I had the mechanism backwards, and the real one is more interesting.
+  > The Itanium ABI says type equality "can be written as **address**
+  > comparisons" — the `strcmp` is a *libstdc++ default*, and its own
+  > header gives the reason: "even with weak symbols sometimes names are
+  > not merged when objects are loaded with RTLD_LOCAL, so now we always
+  > use strcmp by default." The actual ABI-level reason `dynamic_cast` is
+  > unbounded is better: the ABI keeps "only direct base information about
+  > a class type" and explicitly dropped an earlier hash-table scheme, so
+  > indirect bases are found by chasing `type_info` pointers up the
+  > hierarchy.
 - **Usually a design smell.** `if (dynamic_cast<Circle*>(s))` means the
   virtual interface didn't capture what you needed. Branching on concrete
   type means you have a closed set — and a closed set wants a tag and a
@@ -682,10 +724,20 @@ inheritance.
 
 A useful provocation, not a spec. There's no precise definition, which is
 the core criticism — viewpoints vary enough that discussion drifts from
-facts to beliefs. HN's recurring jab is that nobody can identify the
-"Orthodox C++ committee" besides the author. Parts have aged: the gist's
-own changelog concedes `constexpr` needed several iterations to become
-useful — an admission that "avoid the new thing" isn't durable advice.
+facts to beliefs.
+
+Two things I attributed to commenters, and both were wrong. The "Orthodox
+C++ committee" line appears **once** in 413 HN comments across five
+threads, and the joke is Karadžić's own — the post announces what "the
+committee approved." And "no real use for the STL" is a single *gist*
+comment from 2016 whose author also called standards bodies "terrorist
+acts"; HN actually runs the other way, pushing back *against* the STL
+restriction. Neither supports a claim about what critics generally think.
+
+The `constexpr` changelog entry is real and verbatim — "Feb 1, 2018 -
+Added info how constexpr needed multiple iterations to be useful" — but I
+had the intent inverted. He offers it as evidence *for* the wait-five-years
+rule, not as an admission against it.
 
 Defensible core: don't add complexity a problem doesn't demand; prefer
 code a C programmer can read. The overreach (some commenters argue there's
