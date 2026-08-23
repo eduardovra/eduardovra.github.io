@@ -35,15 +35,24 @@ where the cost question is real rather than academic:
 these features I actually leaned on and where. The examples should come
 from my code, not from a list of language features.
 
+**Companion draft:** `cpp-features-and-their-c99-equivalents` holds the
+feature-by-feature reference — 36 features, each with the C++ code, the
+C99 equivalent, and a measured cost. Everything there was compiled and
+measured on gcc 13.3.0; where it contradicts a number in this file, that
+one wins.
+
 **This is probably more than one post.** Candidates that stand alone:
 `How C++ exceptions actually work, in C` (section 6 — clearest payoff),
 `Casts and object layout` (section 9), `Modern C, C89 to C23` (section
 11). Decide later.
 
-**Accuracy TODO.** The ABI-level claims below need checking against real
-output before publishing — `objdump -s -j .gcc_except_table`,
-`readelf --debug-dump=frames`, and `sizeof` on the multiple-inheritance
-example. The numbers (5–15% unwind tables) are secondhand.
+**Accuracy TODO — mostly done.** The ABI-level claims have now been
+checked against real `objdump`/`readelf` output on gcc 13.3.0, and the
+numbers in this file were replaced with measured ones. Three things I had
+wrong are corrected inline below: the unwind-table size and what it's made
+of (section 6), and the two "the compiler won't warn you" claims
+(sections 9 and 12), both of which GCC 13 does in fact warn about. The
+multiple-inheritance layout example is verified in the companion draft.
 
 ---
 
@@ -319,8 +328,10 @@ Mostly not — "harmful" overstates it. Separating the critiques:
 
 Complaints that hold up:
 
-- **Binary size and toolchain.** Unwind tables are real bytes — commonly
-  5–15% of a binary. On a 64KB-flash microcontroller that decides it.
+- **Binary size and toolchain.** Real bytes — measured at 10.9% of text
+  at `-O2` and 14.9% at `-Os` on an emulator-shaped test program (see
+  section 6 for what that number is actually made of). On a 64KB-flash
+  microcontroller that decides it.
 - **Unbounded worst-case latency.** Throwing walks frames and decodes
   tables; the cost isn't easily bounded. Hard real-time and audio
   callbacks can't accept it.
@@ -499,9 +510,18 @@ static void unwind_to(Cleanup* target)
   with no error handling. That's the "zero-cost" claim, and it's accurate.
 - **Throwing is slow in absolute terms** — microseconds. Hence "exceptions
   for exceptional cases" as an engineering rule, not style advice.
-- **`-fno-exceptions` removes the tables** — that's the 5–15% size saving.
-  It also makes `throw` a compile error and turns any escaping throw into
-  `abort`.
+- **`-fno-exceptions` shrinks the binary, but not the way I assumed.**
+  Measured on a 370-line PS1-shaped core (same source both ways, via a
+  `FAIL()` macro): text 40162 → 35786, **−10.9%** at `-O2` and −14.9% at
+  `-Os`. But the *tables* are only 1044 bytes of that, **2.6%** — the rest
+  is code: landing pads, `.cold` cleanup blocks (988 B of
+  `.text.unlikely`), and the throw sites constructing
+  `std::runtime_error`. And `-fno-exceptions` does **not** remove
+  `.eh_frame` (3508 → 3100), because x86-64 defaults to
+  `-fasynchronous-unwind-tables`; `-fno-asynchronous-unwind-tables` is
+  what removes it — `.eh_frame` → 136 B, text −19.4%, at the cost of
+  usable backtraces. It also makes `throw` a compile error and turns any
+  escaping throw into `abort`.
 - **`longjmp` is not a substitute in C++** — it skips destructors entirely
   and is UB if any frame it jumps over has non-trivial locals.
 
@@ -812,9 +832,15 @@ B* pb = (B*)d;   // resolves to static_cast — correct, adds 16
 
 But if `B` were only forward-declared, the same syntax silently falls
 through to `reinterpret_cast` and you get the broken pointer. **Identical
-source, different operation, no warning.** That's the argument for the
-verbose keywords — plus `grep reinterpret_cast` finds every place you lied
-to the compiler.
+source, different operation.** That's the argument for the verbose
+keywords — plus `grep reinterpret_cast` finds every place you lied to the
+compiler.
+
+> Measured, and I had this slightly wrong: there *is* a warning available.
+> GCC 13's `-Wold-style-cast` names which cast a `(T)x` resolved to —
+> `reinterpret_cast<Incomplete*>(b)` for the incomplete-type case,
+> `static_cast<Two*>(b)` for the complete one. It's not in `-Wall`, so you
+> won't see it by default, but "no warning" was too strong.
 
 ### Casts that run code
 
@@ -1007,8 +1033,12 @@ for (const std::pair<std::string, int>& p : m) { ... }   // silently copies!
 
 Map elements are `pair<const std::string, int>` — note the `const`. The
 written type doesn't match, so a *conversion* happens: a temporary and a
-string allocation per iteration, silently. `for (const auto& p : m)` binds
-correctly and copies nothing.
+string allocation per iteration. `for (const auto& p : m)` binds correctly
+and copies nothing.
+
+> Measured, same correction as in section 9: not silent either. GCC 13
+> reports this under plain `-Wall` as `-Wrange-loop-construct`, with the
+> fix in the note. Cost over a 10-element map: 10 allocations, 280 bytes.
 
 Same class of bug with `int i = v.size()` (that's `size_t`, narrowing).
 Writing the type explicitly means you can write the *wrong* type; `auto`
