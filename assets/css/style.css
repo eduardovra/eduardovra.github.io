@@ -34,7 +34,7 @@
   --ink: #16140f;
   --body: #33302a;
   --muted: #57534a;
-  --faint: #8a8474;
+  --faint: #6f6a5c; /* 4.8:1 on --bg — WCAG AA for footer/read-time text */
   --line: #d8d2c4;
   --rule: #16140f;
   --rule-w: 2px;
@@ -64,7 +64,7 @@
     --ink: #ece8de;
     --body: #ded8ca;
     --muted: #b8b2a4;
-    --faint: #7d7768;
+    --faint: #8f8a7c; /* 5.0:1 on dark --bg — WCAG AA */
     --line: #3a352a;
     --rule: #3a352a;
     --rule-w: 1px;
@@ -83,7 +83,7 @@
   --ink: #ece8de;
   --body: #ded8ca;
   --muted: #b8b2a4;
-  --faint: #7d7768;
+  --faint: #8f8a7c; /* 5.0:1 on dark --bg — WCAG AA */
   --line: #3a352a;
   --rule: #3a352a;
   --rule-w: 1px;
