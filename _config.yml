@@ -1,8 +1,8 @@
 title: Eduardo Vieira
-tagline: How software works under the hood
+tagline: Personal blog
 description: >
-  Eduardo Vieira's blog on Python, web servers written from scratch,
-  async programming, and how software works under the hood.
+  Eduardo Vieira's personal blog — write-ups on software engineering
+  and other topics of my interest.
 permalink: ':title/'
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://eduardovra.github.io"
